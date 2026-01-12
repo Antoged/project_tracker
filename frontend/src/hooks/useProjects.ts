@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Project } from "../types";
+import { Project, StageStatus } from "../types";
 import { createProject, fetchProjects } from "../api/projects";
 
 export const useProjects = () => {
@@ -47,7 +47,7 @@ export const useProjects = () => {
           id: `${id}-s${idx + 1}`,
           title: `Этап ${idx + 1}`,
           order: idx + 1,
-          status: idx === 0 ? "in_progress" : "blocked"
+          status: (idx === 0 ? "in_progress" : "blocked") as StageStatus
         }));
         await createProject({ id, name, stages });
         await load();

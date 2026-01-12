@@ -51,7 +51,7 @@ export const GanttChart = ({ project }: Props) => {
     // Создаем новый экземпляр
     const gantt = new Gantt(ref.current, toTasks(project.stages), {
       view_mode: "Day",
-      custom_popup_html: (task) =>
+      custom_popup_html: (task: any) =>
         `<div class="p-2"><div>${task.name}</div><div>${task.progress}%</div></div>`
     });
     
