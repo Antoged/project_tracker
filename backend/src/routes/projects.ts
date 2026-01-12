@@ -510,6 +510,16 @@ router.delete("/:projectId/stages/:stageId", requireAuth, async (req: AuthReques
       [projectId, deletedOrder]
     );
 
+    // Если этапы имеют шаблонные названия "Этап N", обновляем их согласно новому порядку
+    // (чтобы после удаления "Этап 3" стал "Этап 2" и т.п.)
+    await client.query(
+      `UPDATE stages
+       SET title = 'Этап ' || "order"
+       WHERE project_id = $1
+         AND title ~ '^Этап [0-9]+$'`,
+      [projectId]
+    );
+
     // Если удалили первый этап или этап "В работе", разблокируем следующий
     const remainingStagesResult = await client.query(
       'SELECT id, "order", status FROM stages WHERE project_id = $1 ORDER BY "order"',
