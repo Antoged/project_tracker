@@ -11,7 +11,7 @@ import {
   Box,
   Alert
 } from "@mui/material";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../auth/AuthContext";
 
 interface Props {
   open: boolean;

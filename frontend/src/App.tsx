@@ -18,7 +18,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { useEffect, useMemo, useState } from "react";
 import { lightTheme, darkTheme } from "./theme";
 import { useProjects } from "./hooks/useProjects";
-import { useAuth } from "./hooks/useAuth";
+import { useAuth } from "./auth/AuthContext";
 import { ProjectCard } from "./components/ProjectCard";
 import { ProjectDetail } from "./components/ProjectDetail";
 import { ProjectCreateDialog } from "./components/ProjectCreateDialog";
