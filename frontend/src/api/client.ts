@@ -10,7 +10,19 @@ export const api = axios.create({
   timeout: 10_000
 });
 
-// В dev-режиме бэкенд может быть без токена (DEV_BYPASS_AUTH=true),
-// если нужен токен — можно раскомментировать и задать здесь.
-// api.defaults.headers.common.Authorization = `Bearer ${token}`;
+// Обработка ошибок 401 (Unauthorized)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Удаляем токен и данные пользователя
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+      delete api.defaults.headers.common.Authorization;
+      // Перезагружаем страницу для показа экрана входа
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  }
+);
 

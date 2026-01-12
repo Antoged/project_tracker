@@ -8,17 +8,21 @@ import {
   Button,
   Grid,
   Alert,
-  Fade
+  Fade,
+  Chip
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { useMemo, useState } from "react";
 import { lightTheme, darkTheme } from "./theme";
 import { useProjects } from "./hooks/useProjects";
+import { useAuth } from "./hooks/useAuth";
 import { ProjectCard } from "./components/ProjectCard";
 import { ProjectDetail } from "./components/ProjectDetail";
 import { ProjectCreateDialog } from "./components/ProjectCreateDialog";
+import { LoginDialog } from "./components/LoginDialog";
 import { fetchProjects } from "./api/projects";
 
 const gradientBg =
@@ -27,8 +31,10 @@ const gradientBg =
 export default function App() {
   const [dark, setDark] = useState(true);
   const theme = useMemo(() => (dark ? darkTheme : lightTheme), [dark]);
+  const { user, loading: authLoading, logout, isAuthenticated } = useAuth();
   const { projects, loading, error, selectedProject, setSelectedId, createProject, refreshProject, refreshProjects } = useProjects();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
 
   return (
     <ThemeProvider theme={theme}>
@@ -59,20 +65,57 @@ export default function App() {
                 Этапы, блокировки, учёт времени и диаграмма Ганта
               </Typography>
             </Box>
-            <Stack direction="row" spacing={1}>
-              <Button 
-                variant="contained" 
-                onClick={() => setDialogOpen(true)}
-                sx={{
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  "&:hover": {
-                    transform: "translateY(-2px)",
-                    boxShadow: 4
-                  }
-                }}
-              >
-                Новый проект
-              </Button>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {isAuthenticated ? (
+                <>
+                  <Chip 
+                    label={user?.displayName || user?.email} 
+                    color="primary" 
+                    variant="outlined"
+                    sx={{ mr: 1 }}
+                  />
+                  <Button 
+                    variant="contained" 
+                    onClick={() => setDialogOpen(true)}
+                    sx={{
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: 4
+                      }
+                    }}
+                  >
+                    Новый проект
+                  </Button>
+                  <IconButton 
+                    onClick={logout}
+                    color="error"
+                    title="Выйти"
+                    sx={{
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      "&:hover": {
+                        transform: "scale(1.1)"
+                      }
+                    }}
+                  >
+                    <LogoutIcon />
+                  </IconButton>
+                </>
+              ) : (
+                <Button 
+                  variant="contained" 
+                  onClick={() => setLoginDialogOpen(true)}
+                  sx={{
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: 4
+                    }
+                  }}
+                >
+                  Войти
+                </Button>
+              )}
               <IconButton 
                 onClick={() => setDark((v) => !v)} 
                 color="primary"
@@ -94,13 +137,20 @@ export default function App() {
             </Alert>
           )}
 
+          {!isAuthenticated && !authLoading && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Войдите или зарегистрируйтесь, чтобы начать работу с проектами
+            </Alert>
+          )}
+
           {loading && (
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Загружаем проекты...
             </Typography>
           )}
 
-          <Grid container spacing={3}>
+          {isAuthenticated && (
+            <Grid container spacing={3}>
             <Grid item xs={12} md={5}>
               <Stack spacing={2}>
                 {projects.map((project) => (
@@ -158,12 +208,53 @@ export default function App() {
               )}
             </Grid>
           </Grid>
+          )}
+
+          {!isAuthenticated && !authLoading && (
+            <Fade in timeout={300}>
+              <Box
+                sx={{
+                  bgcolor: "background.paper",
+                  borderRadius: 3,
+                  p: 6,
+                  border: "1px dashed",
+                  borderColor: "divider",
+                  textAlign: "center"
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Добро пожаловать в Проектный трекер
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  Войдите или зарегистрируйтесь, чтобы начать управлять проектами
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => setLoginDialogOpen(true)}
+                  sx={{
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: 4
+                    }
+                  }}
+                >
+                  Войти / Зарегистрироваться
+                </Button>
+              </Box>
+            </Fade>
+          )}
         </Container>
 
         <ProjectCreateDialog
           open={dialogOpen}
           onClose={() => setDialogOpen(false)}
           onCreate={createProject}
+        />
+        <LoginDialog
+          open={loginDialogOpen}
+          onClose={() => setLoginDialogOpen(false)}
         />
       </Box>
     </ThemeProvider>
