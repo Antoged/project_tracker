@@ -7,7 +7,7 @@ import { durationMs, nowIso } from "../utils/time";
 const router = Router();
 
 const canAdvance = (stages: Array<{ order: number; status: string }>, target: { order: number }) => {
-  const prev = stages.find((s) => s.order === target.order - 1);
+  const prev = stages.find((s: { order: number; status: string }) => s.order === target.order - 1);
   return !prev || prev.status === "done";
 };
 
@@ -23,7 +23,7 @@ router.get("/", requireAuth, async (_req, res) => {
         [projRow.id]
       );
 
-      const stages: Stage[] = stagesResult.rows.map((row) => ({
+      const stages: Stage[] = stagesResult.rows.map((row: any) => ({
         id: row.id,
         title: row.title,
         order: row.order,
@@ -129,7 +129,7 @@ router.patch("/:projectId/stages/:stageId/status", requireAuth, async (req: Auth
     const allStages = allStagesResult.rows;
     const currentStage = { order: stageRow.order, status: stageRow.status };
 
-    if (!canAdvance(allStages.map((s) => ({ order: s.order, status: s.status })), { order: stageRow.order }) && nextStatus !== "blocked") {
+    if (!canAdvance(allStages.map((s: Stage) => ({ order: s.order, status: s.status })), { order: stageRow.order }) && nextStatus !== "blocked") {
       return res.status(400).json({ message: "Нельзя перейти, предыдущий этап не завершён" });
     }
 
@@ -147,7 +147,7 @@ router.patch("/:projectId/stages/:stageId/status", requireAuth, async (req: Auth
         ["blocked", projectId, stageRow.order]
       );
     } else {
-      const nextStage = allStages.find((s) => s.order === stageRow.order + 1);
+      const nextStage = allStages.find((s: Stage) => s.order === stageRow.order + 1);
       if (nextStage && nextStage.status === "blocked") {
         await client.query(
           'UPDATE stages SET status = $1, started_at = $2 WHERE id = $3',
@@ -165,7 +165,7 @@ router.patch("/:projectId/stages/:stageId/status", requireAuth, async (req: Auth
     const project: Project = {
       id: updatedProjectResult.rows[0].id,
       name: updatedProjectResult.rows[0].name,
-      stages: updatedStagesResult.rows.map((row) => ({
+      stages: updatedStagesResult.rows.map((row: any) => ({
         id: row.id,
         title: row.title,
         order: row.order,
@@ -212,7 +212,7 @@ router.patch("/:projectId/stages/:stageId/notes", requireAuth, async (req: AuthR
     const project: Project = {
       id: updatedProjectResult.rows[0].id,
       name: updatedProjectResult.rows[0].name,
-      stages: updatedStagesResult.rows.map((row) => ({
+      stages: updatedStagesResult.rows.map((row: any) => ({
         id: row.id,
         title: row.title,
         order: row.order,
@@ -258,7 +258,7 @@ router.patch("/:projectId", requireAuth, requireAdmin, async (req: AuthRequest, 
     const project: Project = {
       id: updatedProjectResult.rows[0].id,
       name: updatedProjectResult.rows[0].name,
-      stages: updatedStagesResult.rows.map((row) => ({
+      stages: updatedStagesResult.rows.map((row: any) => ({
         id: row.id,
         title: row.title,
         order: row.order,
@@ -337,7 +337,7 @@ router.delete("/:projectId/stages/:stageId", requireAuth, requireAdmin, async (r
     const project: Project = {
       id: updatedProjectResult.rows[0].id,
       name: updatedProjectResult.rows[0].name,
-      stages: updatedStagesResult.rows.map((row) => ({
+      stages: updatedStagesResult.rows.map((row: any) => ({
         id: row.id,
         title: row.title,
         order: row.order,
