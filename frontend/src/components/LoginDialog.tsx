@@ -38,6 +38,17 @@ export const LoginDialog = ({ open, onClose }: Props) => {
       return;
     }
 
+    // Требования к паролю (снижает риск предупреждений браузера про утёкшие пароли)
+    if (tab === 1) {
+      const p = String(password);
+      const hasLetter = /[A-Za-zА-Яа-я]/.test(p);
+      const hasDigit = /\d/.test(p);
+      if (p.length < 8 || !hasLetter || !hasDigit) {
+        setError("Пароль: минимум 8 символов, должен содержать буквы и цифры");
+        return;
+      }
+    }
+
     setError(null);
     setLoading(true);
 
@@ -124,6 +135,7 @@ export const LoginDialog = ({ open, onClose }: Props) => {
             onChange={(e) => setEmail(e.target.value)}
             fullWidth
             autoFocus={tab === 0}
+            autoComplete="email"
             onKeyPress={(e) => {
               if (e.key === "Enter") {
                 handleSubmit();
@@ -136,6 +148,10 @@ export const LoginDialog = ({ open, onClose }: Props) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             fullWidth
+            autoComplete={tab === 0 ? "current-password" : "new-password"}
+            helperText={
+              tab === 1 ? "Минимум 8 символов, буквы и цифры (лучше уникальный пароль)" : undefined
+            }
             onKeyPress={(e) => {
               if (e.key === "Enter") {
                 handleSubmit();

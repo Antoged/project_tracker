@@ -14,9 +14,12 @@ const createToken = (user: User) =>
   });
 
 router.post("/register", async (req, res) => {
-  const { email, password, displayName, role } = req.body ?? {};
+  const { email, password, displayName } = req.body ?? {};
   if (!email || !password) {
     return res.status(400).json({ message: "Email и пароль обязательны" });
+  }
+  if (String(password).length < 8) {
+    return res.status(400).json({ message: "Пароль должен быть минимум 8 символов" });
   }
 
   const normalizedEmail = String(email).toLowerCase();
@@ -29,7 +32,12 @@ router.post("/register", async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const userId = normalizedEmail;
-    const userRole = role === "admin" ? "admin" : "user";
+
+    // Первый зарегистрированный пользователь становится admin (чтобы можно было управлять проектами).
+    // Остальные — user.
+    const countResult = await client.query("SELECT COUNT(*)::int AS cnt FROM users");
+    const usersCount = Number(countResult.rows?.[0]?.cnt ?? 0);
+    const userRole = usersCount === 0 ? "admin" : "user";
     const userName = displayName || normalizedEmail;
 
     await client.query(

@@ -31,12 +31,10 @@ export const useProjects = () => {
     }
   }, [selectedId]);
 
-  // Загружаем проекты только если есть токен (пользователь авторизован)
+  // Первый запрос делаем всегда. Если пользователь не авторизован — будет 401,
+  // мы просто не покажем ошибку и не будет "дёрганий".
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      load();
-    }
+    load();
   }, [load]);
 
   const selectedProject = useMemo(

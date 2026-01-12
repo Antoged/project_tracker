@@ -5,10 +5,6 @@ import axios from "axios";
 // Узнать IP: ipconfig в PowerShell, найти IPv4 Address
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
-// Логируем для отладки
-console.log("API URL:", API_URL);
-console.log("VITE_API_URL from env:", import.meta.env.VITE_API_URL);
-
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 10_000

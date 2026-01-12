@@ -15,7 +15,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { lightTheme, darkTheme } from "./theme";
 import { useProjects } from "./hooks/useProjects";
 import { useAuth } from "./hooks/useAuth";
@@ -33,9 +33,16 @@ export default function App() {
   const theme = useMemo(() => (dark ? darkTheme : lightTheme), [dark]);
   const { user, loading: authLoading, logout, isAuthenticated } = useAuth();
   // Загружаем проекты только если пользователь авторизован
-  const { projects, loading, error, selectedProject, setSelectedId, createProject, refreshProject, refreshProjects } = useProjects();
+  const { projects, loading, error, selectedProject, setSelectedId, createProject, refreshProject, refreshProjects, reload } = useProjects();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+
+  // После успешного логина / регистрации подгружаем проекты
+  useEffect(() => {
+    if (isAuthenticated) {
+      reload(true);
+    }
+  }, [isAuthenticated, reload]);
 
   return (
     <ThemeProvider theme={theme}>
