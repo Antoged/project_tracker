@@ -27,6 +27,11 @@ export const updateStageNotes = async (projectId: string, stageId: string, notes
   return res.data.project;
 };
 
+export const updateStageTitle = async (projectId: string, stageId: string, title: string): Promise<Project> => {
+  const res = await api.patch<{ project: Project }>(`/projects/${projectId}/stages/${stageId}/title`, { title });
+  return res.data.project;
+};
+
 export const updateProjectName = async (projectId: string, name: string): Promise<Project> => {
   const res = await api.patch<{ project: Project }>(`/projects/${projectId}`, { name });
   return res.data.project;

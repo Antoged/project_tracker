@@ -17,7 +17,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Stage } from "../types";
 import dayjs from "dayjs";
-import { assignStageAssignee, updateStageNotes, updateStageStatus, deleteStage } from "../api/projects";
+import { updateStageNotes, updateStageStatus, updateStageTitle, deleteStage } from "../api/projects";
 import { StageDeleteDialog } from "./StageDeleteDialog";
 
 const statusLabel = (status: Stage["status"]) => {
@@ -53,22 +53,39 @@ interface Props {
 const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }: Props) => {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notes, setNotes] = useState(stage.notes || "");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [title, setTitle] = useState(stage.title || "");
   const [saving, setSaving] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [assigneeInput, setAssigneeInput] = useState(stage.assigneeUsername || "");
-  const [assigning, setAssigning] = useState(false);
 
   // Синхронизируем локальное состояние с пропсами
   useEffect(() => {
     setNotes(stage.notes || "");
-    setAssigneeInput(stage.assigneeUsername || "");
-  }, [stage.notes]);
+    setTitle(stage.title || "");
+  }, [stage.notes, stage.title]);
 
-  useEffect(() => {
-    setAssigneeInput(stage.assigneeUsername || "");
-  }, [stage.assigneeUsername]);
+  const handleSaveTitle = async () => {
+    const next = title.trim();
+    if (!next) {
+      alert("Название этапа не может быть пустым");
+      return;
+    }
+    setSaving(true);
+    setIsEditingTitle(false);
+    try {
+      await updateStageTitle(projectId, stage.id, next);
+      await onUpdate();
+    } catch (err) {
+      console.error("Failed to save title:", err);
+      setTitle(stage.title || "");
+      setIsEditingTitle(true);
+      alert("Не удалось обновить название этапа. Попробуйте ещё раз.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSaveNotes = async () => {
     setSaving(true);
@@ -115,20 +132,6 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
     }
   };
 
-  const handleAssign = async () => {
-    if (!isAdmin) return;
-    setAssigning(true);
-    try {
-      const username = assigneeInput.trim();
-      await assignStageAssignee(projectId, stage.id, username ? username : null);
-      await onUpdate();
-    } catch (err: any) {
-      console.error("Failed to assign:", err);
-      alert(err?.response?.data?.message || "Не удалось назначить исполнителя");
-    } finally {
-      setAssigning(false);
-    }
-  };
 
   const isInProgress = stage.status === "in_progress";
   const isDone = stage.status === "done";
@@ -152,12 +155,37 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
       >
       <Stack spacing={1.5}>
         <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
-          <Chip label={stage.title} size="small" color={statusColor(stage.status)} />
-          <Chip
-            label={stage.assigneeUsername ? `@${stage.assigneeUsername}` : "Не назначен"}
-            size="small"
-            variant="outlined"
-          />
+          {isEditingTitle ? (
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, minWidth: 220 }}>
+              <TextField
+                size="small"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                fullWidth
+                autoFocus
+              />
+              <IconButton size="small" color="primary" onClick={handleSaveTitle} disabled={saving}>
+                <SaveIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                onClick={() => {
+                  setTitle(stage.title || "");
+                  setIsEditingTitle(false);
+                }}
+                disabled={saving}
+              >
+                <CancelIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          ) : (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Chip label={stage.title} size="small" color={statusColor(stage.status)} />
+              <IconButton size="small" onClick={() => setIsEditingTitle(true)} disabled={saving}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          )}
           <Typography variant="body2" color="text.secondary" sx={{ minWidth: 120 }}>
             {statusLabel(stage.status)}
           </Typography>
@@ -186,37 +214,6 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
             </IconButton>
           )}
         </Stack>
-
-        {isAdmin && (
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
-            <TextField
-              size="small"
-              label="Назначить исполнителя (никнейм)"
-              placeholder="например: anton_123"
-              value={assigneeInput}
-              onChange={(e) => setAssigneeInput(e.target.value)}
-              fullWidth
-            />
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={handleAssign}
-              disabled={assigning}
-              sx={{ whiteSpace: "nowrap" }}
-            >
-              {assigning ? "..." : "Назначить"}
-            </Button>
-            <Button
-              size="small"
-              color="inherit"
-              onClick={() => setAssigneeInput("")}
-              disabled={assigning}
-              sx={{ whiteSpace: "nowrap" }}
-            >
-              Снять
-            </Button>
-          </Stack>
-        )}
 
         {isInProgress && canComplete && (
           <Button

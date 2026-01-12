@@ -292,12 +292,9 @@ router.patch("/:projectId/stages/:stageId/status", requireAuth, async (req: Auth
       return res.status(400).json({ message: "Нельзя перейти, предыдущий этап не завершён" });
     }
 
-    // Исполнитель может завершать только назначенный ему этап
-    if (memberRole !== "admin") {
-      if (nextStatus === "done" && stageRow.assignee_id !== userId) {
-        return res.status(403).json({ message: "Этап может завершить только назначенный исполнитель" });
-      }
-    }
+    // Исполнители (участники проекта) могут завершать этапы, если они участники проекта.
+    // Ограничение "только назначенный" отключено по требованию: участник может редактировать все этапы,
+    // но не имеет прав админа (удаление/приглашения/переименование проекта).
 
     const startedAt = nextStatus === "in_progress" && !stageRow.started_at ? nowIso() : stageRow.started_at;
     const finishedAt = nextStatus === "done" && !stageRow.finished_at ? nowIso() : stageRow.finished_at;
@@ -411,6 +408,63 @@ router.patch("/:projectId/stages/:stageId/notes", requireAuth, async (req: AuthR
   } catch (err) {
     console.error("[projects] Update notes error:", err);
     return res.status(500).json({ message: "Ошибка обновления комментариев" });
+  } finally {
+    client.release();
+  }
+});
+
+router.patch("/:projectId/stages/:stageId/title", requireAuth, async (req: AuthRequest, res) => {
+  const { projectId, stageId } = req.params;
+  const { title } = req.body ?? {};
+  if (!projectId || !stageId) return res.status(400).json({ message: "Параметры не заданы" });
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ message: "Необходим токен" });
+  if (!title || !String(title).trim()) return res.status(400).json({ message: "Название этапа не может быть пустым" });
+
+  const client = await pool.connect();
+  try {
+    const memberRole = await requireProjectMember(client, projectId, userId);
+    if (!memberRole) return res.status(403).json({ message: "Нет доступа к проекту" });
+
+    const stageResult = await client.query(
+      "SELECT id FROM stages WHERE id = $1 AND project_id = $2",
+      [stageId, projectId]
+    );
+    if (stageResult.rows.length === 0) return res.status(404).json({ message: "Этап не найден" });
+
+    await client.query("UPDATE stages SET title = $1 WHERE id = $2", [String(title).trim(), stageId]);
+
+    const updatedProjectResult = await client.query("SELECT id, name FROM projects WHERE id = $1", [projectId]);
+    const updatedStagesResult = await client.query(
+      `SELECT s.id, s.title, s."order", s.status, s.assignee_id, u.username AS assignee_username, s.notes, s.started_at, s.finished_at
+       FROM stages s
+       LEFT JOIN users u ON u.id = s.assignee_id
+       WHERE s.project_id = $1
+       ORDER BY s."order"`,
+      [projectId]
+    );
+
+    const project: Project = {
+      id: updatedProjectResult.rows[0].id,
+      name: updatedProjectResult.rows[0].name,
+      stages: updatedStagesResult.rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        order: row.order,
+        status: row.status,
+        assigneeId: row.assignee_id || undefined,
+        assigneeUsername: row.assignee_username || undefined,
+        notes: row.notes || undefined,
+        startedAt: row.started_at ? new Date(row.started_at).toISOString() : undefined,
+        finishedAt: row.finished_at ? new Date(row.finished_at).toISOString() : undefined
+      })),
+      myRole: memberRole
+    };
+
+    return res.json({ project });
+  } catch (err) {
+    console.error("[projects] Update title error:", err);
+    return res.status(500).json({ message: "Ошибка обновления названия этапа" });
   } finally {
     client.release();
   }

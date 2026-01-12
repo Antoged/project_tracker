@@ -10,23 +10,9 @@ export const api = axios.create({
   timeout: 10_000
 });
 
-// Обработка ошибок 401 (Unauthorized)
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Удаляем токен и данные пользователя только если он был
-      const hadToken = localStorage.getItem("auth_token");
-      if (hadToken) {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
-        delete api.defaults.headers.common.Authorization;
-        // Перезагружаем страницу только если был авторизован
-        window.location.reload();
-      }
-      // Если токена не было, просто отклоняем запрос без перезагрузки
-    }
-    return Promise.reject(error);
-  }
-);
+// Важно: ставим токен сразу при инициализации, чтобы запросы после refresh не уходили без Authorization
+const token = localStorage.getItem("auth_token");
+if (token) {
+  api.defaults.headers.common.Authorization = `Bearer ${token}`;
+}
 

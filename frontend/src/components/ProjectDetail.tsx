@@ -229,8 +229,7 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
             stage={stage}
             canComplete={
               canAdvance(project.stages, stage) &&
-              stage.status === "in_progress" &&
-              (isAdmin || (!!user?.id && stage.assigneeId === user.id))
+              stage.status === "in_progress"
             }
             onUpdate={onUpdate}
             isAdmin={isAdmin}
