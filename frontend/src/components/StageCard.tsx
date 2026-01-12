@@ -154,9 +154,14 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
         }}
       >
       <Stack spacing={1.5}>
-        <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap">
+        <Stack direction="row" alignItems="center" spacing={1.5} flexWrap="wrap" sx={{ rowGap: 1 }}>
           {isEditingTitle ? (
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, minWidth: 220 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ flex: 1, minWidth: { xs: "100%", sm: 220 } }}
+            >
               <TextField
                 size="small"
                 value={title}
@@ -194,7 +199,11 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
             value={isDone ? 100 : isInProgress ? 50 : 5}
             sx={{ flex: 1, height: 8, borderRadius: 999, minWidth: 100 }}
           />
-          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 140, textAlign: "right" }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ minWidth: { xs: "100%", sm: 140 }, textAlign: { xs: "left", sm: "right" } }}
+          >
             {stage.startedAt ? dayjs(stage.startedAt).format("DD.MM HH:mm") : "—"} →
             {stage.finishedAt ? dayjs(stage.finishedAt).format("DD.MM HH:mm") : " ..."}
           </Typography>

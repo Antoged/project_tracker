@@ -105,13 +105,18 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
           sx={{
             bgcolor: "background.paper",
             borderRadius: 3,
-            p: 3,
+            p: { xs: 2, sm: 3 },
             border: "1px solid",
             borderColor: "divider",
             transition: "all 0.3s ease-in-out"
           }}
         >
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            spacing={1}
+            sx={{ mb: 3, gap: 1 }}
+          >
             {isEditingName ? (
               <>
                 <TextField
@@ -158,7 +163,7 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
               </>
             ) : (
               <>
-                <Typography variant="h6" sx={{ flex: 1 }}>
+                <Typography variant="h6" sx={{ flex: 1, wordBreak: "break-word" }}>
                   {project.name}
                 </Typography>
                 {isAdmin && (

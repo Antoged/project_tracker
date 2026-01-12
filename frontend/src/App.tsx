@@ -63,17 +63,32 @@ export default function App() {
           msOverflowStyle: "none"
         }}
       >
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            sx={{ mb: 3, gap: 1.5 }}
+          >
             <Box>
-              <Typography variant="h5" fontWeight={700}>
-                Проектный трекер
+              <Typography
+                variant="h5"
+                fontWeight={800}
+                sx={{
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1.15
+                }}
+              >
+                Project Tracker
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Этапы, блокировки, учёт времени и диаграмма Ганта
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, maxWidth: 640 }}>
+                Управляй проектами по этапам: статусы, комментарии и сроки — наглядно в диаграмме Ганта и с блокировками по порядку.
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5, opacity: 0.8 }}>
+                made by Anton Gedziun
               </Typography>
             </Box>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ rowGap: 1 }}>
               {isAuthenticated ? (
                 <>
                   <Chip 
@@ -85,6 +100,7 @@ export default function App() {
                   <Button 
                     variant="contained" 
                     onClick={() => setDialogOpen(true)}
+                    fullWidth={false}
                     sx={{
                       transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                       "&:hover": {
@@ -224,17 +240,17 @@ export default function App() {
                 sx={{
                   bgcolor: "background.paper",
                   borderRadius: 3,
-                  p: 6,
+                  p: { xs: 3, sm: 6 },
                   border: "1px dashed",
                   borderColor: "divider",
                   textAlign: "center"
                 }}
               >
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                  Добро пожаловать в Проектный трекер
+                  Добро пожаловать в Project Tracker
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                  Войдите или зарегистрируйтесь, чтобы начать управлять проектами
+                  Войдите или зарегистрируйтесь, чтобы создавать проекты, вести этапы и отмечать прогресс в диаграмме Ганта.
                 </Typography>
                 <Button
                   variant="contained"

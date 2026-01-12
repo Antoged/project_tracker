@@ -29,6 +29,7 @@ export const GanttChart = ({ project }: Props) => {
   const ganttRef = useRef<Gantt | null>(null);
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  const isDraggingTouchRef = useRef(false);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -67,7 +68,90 @@ export const GanttChart = ({ project }: Props) => {
         // Игнорируем ошибки
       }
     };
-  }, [project.id, JSON.stringify(project.stages.map(s => ({ id: s.id, status: s.status, startedAt: s.startedAt, finishedAt: s.finishedAt })))]);
+  }, [
+    project.id,
+    JSON.stringify(
+      project.stages.map((s) => ({
+        id: s.id,
+        title: s.title,
+        order: s.order,
+        status: s.status,
+        startedAt: s.startedAt,
+        finishedAt: s.finishedAt
+      }))
+    )
+  ]);
+
+  // Touch → Mouse bridge для мобильных устройств (frappe-gantt в основном слушает mouse events)
+  useEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+
+    const shouldSimulateDrag = (el: Element | null) => {
+      if (!el) return false;
+      const closest = (el as any).closest?.bind(el) as ((s: string) => Element | null) | undefined;
+      if (!closest) return false;
+      return !!closest(".bar-wrapper, .bar, .handle, .bar-group, .gantt");
+    };
+
+    const dispatchMouse = (type: "mousedown" | "mousemove" | "mouseup", touch: Touch, target: EventTarget) => {
+      const ev = new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        screenX: touch.screenX,
+        screenY: touch.screenY
+      });
+      target.dispatchEvent(ev);
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      if (!t) return;
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      if (!shouldSimulateDrag(el)) return; // если не по бару — оставляем нативный скролл
+      isDraggingTouchRef.current = true;
+      e.preventDefault();
+      dispatchMouse("mousedown", t, el || container);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isDraggingTouchRef.current) return;
+      const t = e.changedTouches[0];
+      if (!t) return;
+      e.preventDefault();
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      // mousemove чаще слушают на документе/окне
+      dispatchMouse("mousemove", t, el || document);
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!isDraggingTouchRef.current) return;
+      const t = e.changedTouches[0];
+      if (!t) return;
+      e.preventDefault();
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      dispatchMouse("mouseup", t, el || document);
+      isDraggingTouchRef.current = false;
+    };
+
+    const onTouchCancel = () => {
+      isDraggingTouchRef.current = false;
+    };
+
+    container.addEventListener("touchstart", onTouchStart, { passive: false });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
+    container.addEventListener("touchend", onTouchEnd, { passive: false });
+    container.addEventListener("touchcancel", onTouchCancel, { passive: true });
+
+    return () => {
+      container.removeEventListener("touchstart", onTouchStart as any);
+      container.removeEventListener("touchmove", onTouchMove as any);
+      container.removeEventListener("touchend", onTouchEnd as any);
+      container.removeEventListener("touchcancel", onTouchCancel as any);
+    };
+  }, [project.id]);
 
   return (
     <Box
@@ -79,6 +163,9 @@ export const GanttChart = ({ project }: Props) => {
         overflowX: "auto",
         overflowY: "hidden",
         minHeight: 300,
+        WebkitOverflowScrolling: "touch",
+        // даём браузеру понимать, что разрешён скролл, но drag мы перехватим touch-бриджем
+        touchAction: "pan-x pan-y",
         "&::-webkit-scrollbar": {
           height: "12px",
           background: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
