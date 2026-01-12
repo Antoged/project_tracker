@@ -40,3 +40,12 @@ export const deleteStage = async (projectId: string, stageId: string): Promise<P
   const res = await api.delete<{ project: Project }>(`/projects/${projectId}/stages/${stageId}`);
   return res.data.project;
 };
+
+export const inviteToProject = async (projectId: string, username: string, role: "executor" | "admin" = "executor"): Promise<void> => {
+  await api.post(`/projects/${projectId}/invite`, { username, role });
+};
+
+export const assignStageAssignee = async (projectId: string, stageId: string, username: string | null): Promise<Project> => {
+  const res = await api.patch<{ project: Project }>(`/projects/${projectId}/stages/${stageId}/assignee`, { username });
+  return res.data.project;
+};

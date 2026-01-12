@@ -3,6 +3,7 @@ import { api } from "./client";
 export interface User {
   id: string;
   email: string;
+  username: string;
   displayName: string;
   role: "admin" | "user";
 }
@@ -20,8 +21,8 @@ export interface LoginPayload {
 export interface RegisterPayload {
   email: string;
   password: string;
+  username: string;
   displayName?: string;
-  role?: "admin" | "user";
 }
 
 export const login = async (payload: LoginPayload): Promise<AuthResponse> => {

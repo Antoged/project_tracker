@@ -14,16 +14,19 @@ export async function initDatabase() {
     
     const schema = readFileSync(schemaPath, "utf-8");
     await client.query(schema);
-    
-    // Применяем миграцию для добавления notes, если таблица уже существует
-    try {
-      const migratePath = isInBackend
-        ? join(cwd, "src", "db", "migrate-add-notes.sql")
-        : join(cwd, "backend", "src", "db", "migrate-add-notes.sql");
-      const migrate = readFileSync(migratePath, "utf-8");
-      await client.query(migrate);
-    } catch (migrateErr) {
-      // Игнорируем ошибки миграции (поле может уже существовать)
+
+    // Применяем миграции (идемпотентные)
+    const migrationFiles = ["migrate-add-notes.sql", "migrate-project-members-and-username.sql"];
+    for (const file of migrationFiles) {
+      try {
+        const migratePath = isInBackend
+          ? join(cwd, "src", "db", file)
+          : join(cwd, "backend", "src", "db", file);
+        const migrate = readFileSync(migratePath, "utf-8");
+        await client.query(migrate);
+      } catch (migrateErr) {
+        // Игнорируем ошибки миграции (часть изменений может уже существовать)
+      }
     }
     
     console.log("[db] Schema initialized");

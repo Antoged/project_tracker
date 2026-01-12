@@ -18,7 +18,8 @@ import { Project, Stage } from "../types";
 import { GanttChart } from "./GanttChart";
 import { StageCard } from "./StageCard";
 import { ProjectDeleteDialog } from "./ProjectDeleteDialog";
-import { updateProjectName, deleteProject } from "../api/projects";
+import { inviteToProject, updateProjectName, deleteProject } from "../api/projects";
+import { useAuth } from "../auth/AuthContext";
 
 const canAdvance = (stages: Stage[], target: Stage) => {
   const prev = stages.find((s) => s.order === target.order - 1);
@@ -32,10 +33,14 @@ interface Props {
 }
 
 const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
+  const { user } = useAuth();
+  const isAdmin = project.myRole === "admin";
   const [isEditingName, setIsEditingName] = useState(false);
   const [projectName, setProjectName] = useState(project.name);
   const [saving, setSaving] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [inviteUsername, setInviteUsername] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   // Синхронизируем название с пропсами
   useEffect(() => {
@@ -64,6 +69,22 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
       alert("Не удалось обновить название проекта. Попробуйте ещё раз.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleInvite = async () => {
+    const u = inviteUsername.trim();
+    if (!u) return;
+    setInviting(true);
+    try {
+      await inviteToProject(project.id, u, "executor");
+      setInviteUsername("");
+      alert(`Пользователь @${u} приглашён в проект`);
+    } catch (err: any) {
+      console.error("Failed to invite:", err);
+      alert(err?.response?.data?.message || "Не удалось пригласить пользователя");
+    } finally {
+      setInviting(false);
     }
   };
 
@@ -140,38 +161,62 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
                 <Typography variant="h6" sx={{ flex: 1 }}>
                   {project.name}
                 </Typography>
-                <Tooltip title="Редактировать название">
-                  <IconButton
-                    size="small"
-                    onClick={() => setIsEditingName(true)}
-                    sx={{
-                      transition: "all 0.2s ease-in-out",
-                      "&:hover": {
-                        transform: "scale(1.1)"
-                      }
-                    }}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Удалить проект">
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => setDeleteDialogOpen(true)}
-                    sx={{
-                      transition: "all 0.2s ease-in-out",
-                      "&:hover": {
-                        transform: "scale(1.1)"
-                      }
-                    }}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                {isAdmin && (
+                  <>
+                    <Tooltip title="Редактировать название">
+                      <IconButton
+                        size="small"
+                        onClick={() => setIsEditingName(true)}
+                        sx={{
+                          transition: "all 0.2s ease-in-out",
+                          "&:hover": {
+                            transform: "scale(1.1)"
+                          }
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Удалить проект">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => setDeleteDialogOpen(true)}
+                        sx={{
+                          transition: "all 0.2s ease-in-out",
+                          "&:hover": {
+                            transform: "scale(1.1)"
+                          }
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </>
+                )}
               </>
             )}
           </Stack>
+
+          {isAdmin && (
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 3 }}>
+              <TextField
+                label="Пригласить по никнейму"
+                placeholder="например: anton_123"
+                value={inviteUsername}
+                onChange={(e) => setInviteUsername(e.target.value)}
+                size="small"
+                fullWidth
+              />
+              <Button
+                variant="contained"
+                onClick={handleInvite}
+                disabled={inviting || !inviteUsername.trim()}
+              >
+                {inviting ? "Приглашаем..." : "Пригласить"}
+              </Button>
+            </Stack>
+          )}
 
       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
         Этапы
@@ -182,8 +227,13 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
             key={stage.id}
             projectId={project.id}
             stage={stage}
-            canComplete={canAdvance(project.stages, stage) && stage.status === "in_progress"}
+            canComplete={
+              canAdvance(project.stages, stage) &&
+              stage.status === "in_progress" &&
+              (isAdmin || (!!user?.id && stage.assigneeId === user.id))
+            }
             onUpdate={onUpdate}
+            isAdmin={isAdmin}
           />
         ))}
       </Stack>

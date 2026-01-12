@@ -22,7 +22,7 @@ export const LoginDialog = ({ open, onClose }: Props) => {
   const [tab, setTab] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
@@ -33,8 +33,8 @@ export const LoginDialog = ({ open, onClose }: Props) => {
       return;
     }
 
-    if (tab === 1 && !displayName.trim()) {
-      setError("Имя пользователя обязательно");
+    if (tab === 1 && !username.trim()) {
+      setError("Никнейм обязателен");
       return;
     }
 
@@ -56,12 +56,12 @@ export const LoginDialog = ({ open, onClose }: Props) => {
       if (tab === 0) {
         await login(email, password);
       } else {
-        await register(email, password, displayName.trim());
+        await register(email, password, username.trim());
       }
       // Сброс формы
       setEmail("");
       setPassword("");
-      setDisplayName("");
+      setUsername("");
       onClose();
     } catch (err: any) {
       console.error("Auth error:", err);
@@ -101,7 +101,7 @@ export const LoginDialog = ({ open, onClose }: Props) => {
     setError(null);
     setEmail("");
     setPassword("");
-    setDisplayName("");
+    setUsername("");
   };
 
   return (
@@ -121,11 +121,12 @@ export const LoginDialog = ({ open, onClose }: Props) => {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
           {tab === 1 && (
             <TextField
-              label="Имя пользователя"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              label="Никнейм (уникальный)"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               fullWidth
               autoFocus={tab === 1}
+              helperText="3-32 символа: латиница, цифры, подчёркивание (пример: anton_123)"
             />
           )}
           <TextField

@@ -77,7 +77,7 @@ export default function App() {
               {isAuthenticated ? (
                 <>
                   <Chip 
-                    label={user?.displayName || user?.email} 
+                    label={user?.username ? `@${user.username}` : (user?.displayName || user?.email)} 
                     color="primary" 
                     variant="outlined"
                     sx={{ mr: 1 }}
