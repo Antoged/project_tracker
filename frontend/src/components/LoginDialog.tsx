@@ -54,7 +54,31 @@ export const LoginDialog = ({ open, onClose }: Props) => {
       onClose();
     } catch (err: any) {
       console.error("Auth error:", err);
-      const errorMessage = err.response?.data?.message || err.message || "Произошла ошибка. Проверьте подключение к серверу.";
+      console.error("Error details:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message,
+        code: err.code
+      });
+      
+      let errorMessage = "Произошла ошибка";
+      
+      if (err.code === "ERR_NETWORK" || err.message?.includes("Network Error")) {
+        errorMessage = "Не удалось подключиться к серверу. Проверьте интернет-соединение.";
+      } else if (err.response?.status === 409) {
+        errorMessage = "Пользователь с таким email уже существует";
+      } else if (err.response?.status === 404) {
+        errorMessage = "Пользователь не найден. Проверьте email.";
+      } else if (err.response?.status === 401) {
+        errorMessage = "Неверный пароль";
+      } else if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || "Неверные данные. Проверьте email и пароль.";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
     } finally {
       setLoading(false);

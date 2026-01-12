@@ -30,21 +30,31 @@ export const useAuth = () => {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const response = await loginApi({ email, password });
-    localStorage.setItem(TOKEN_KEY, response.token);
-    localStorage.setItem(USER_KEY, JSON.stringify(response.user));
-    api.defaults.headers.common.Authorization = `Bearer ${response.token}`;
-    setUser(response.user);
-    return response;
+    try {
+      const response = await loginApi({ email, password });
+      localStorage.setItem(TOKEN_KEY, response.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+      api.defaults.headers.common.Authorization = `Bearer ${response.token}`;
+      setUser(response.user);
+      return response;
+    } catch (err: any) {
+      console.error("Login error:", err);
+      throw err;
+    }
   }, []);
 
   const register = useCallback(async (email: string, password: string, displayName?: string) => {
-    const response = await registerApi({ email, password, displayName });
-    localStorage.setItem(TOKEN_KEY, response.token);
-    localStorage.setItem(USER_KEY, JSON.stringify(response.user));
-    api.defaults.headers.common.Authorization = `Bearer ${response.token}`;
-    setUser(response.user);
-    return response;
+    try {
+      const response = await registerApi({ email, password, displayName });
+      localStorage.setItem(TOKEN_KEY, response.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+      api.defaults.headers.common.Authorization = `Bearer ${response.token}`;
+      setUser(response.user);
+      return response;
+    } catch (err: any) {
+      console.error("Register error:", err);
+      throw err;
+    }
   }, []);
 
   const logout = useCallback(() => {
