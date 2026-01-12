@@ -55,7 +55,7 @@ router.get("/", requireAuth, async (_req, res) => {
   }
 });
 
-router.post("/", requireAuth, requireAdmin, async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   const { id, name, stages } = req.body ?? {};
   if (!id || !name) {
     return res.status(400).json({ message: "id и name обязательны" });
@@ -233,7 +233,7 @@ router.patch("/:projectId/stages/:stageId/notes", requireAuth, async (req: AuthR
   }
 });
 
-router.patch("/:projectId", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+router.patch("/:projectId", requireAuth, async (req: AuthRequest, res) => {
   const { projectId } = req.params;
   const { name } = req.body ?? {};
   if (!projectId || !name) {
@@ -279,7 +279,7 @@ router.patch("/:projectId", requireAuth, requireAdmin, async (req: AuthRequest, 
   }
 });
 
-router.delete("/:projectId/stages/:stageId", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+router.delete("/:projectId/stages/:stageId", requireAuth, async (req: AuthRequest, res) => {
   const { projectId, stageId } = req.params;
   if (!projectId || !stageId) {
     return res.status(400).json({ message: "projectId и stageId обязательны" });
@@ -358,7 +358,7 @@ router.delete("/:projectId/stages/:stageId", requireAuth, requireAdmin, async (r
   }
 });
 
-router.delete("/:projectId", requireAuth, requireAdmin, async (req: AuthRequest, res) => {
+router.delete("/:projectId", requireAuth, async (req: AuthRequest, res) => {
   const { projectId } = req.params;
   if (!projectId) {
     return res.status(400).json({ message: "projectId обязателен" });
