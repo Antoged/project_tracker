@@ -7,14 +7,13 @@ import projectRoutes from "./routes/projects";
 
 const app = express();
 
+// CORS настройка - разрешаем все origins для упрощения
+// В продакшене можно ограничить конкретными доменами
 app.use(cors({
-  origin: [
-    "https://project-tracker-rho-five.vercel.app",
-    "https://project-tracker-*.vercel.app",
-    "http://localhost:5173",
-    "http://localhost:3000"
-  ],
-  credentials: true
+  origin: true, // Разрешаем все origins
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
 
