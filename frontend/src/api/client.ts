@@ -15,12 +15,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Удаляем токен и данные пользователя
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("auth_user");
-      delete api.defaults.headers.common.Authorization;
-      // Перезагружаем страницу для показа экрана входа
-      window.location.reload();
+      // Удаляем токен и данные пользователя только если он был
+      const hadToken = localStorage.getItem("auth_token");
+      if (hadToken) {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("auth_user");
+        delete api.defaults.headers.common.Authorization;
+        // Перезагружаем страницу только если был авторизован
+        window.location.reload();
+      }
+      // Если токена не было, просто отклоняем запрос без перезагрузки
     }
     return Promise.reject(error);
   }

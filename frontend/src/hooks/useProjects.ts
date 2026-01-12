@@ -19,8 +19,11 @@ export const useProjects = () => {
       if (data.length && !selectedId) {
         setSelectedId(data[0].id);
       }
-    } catch (e) {
-      setError("Не удалось загрузить проекты");
+    } catch (e: any) {
+      // Не показываем ошибку если это 401 и пользователь не авторизован
+      if (e.response?.status !== 401) {
+        setError("Не удалось загрузить проекты");
+      }
     } finally {
       if (!silent) {
         setLoading(false);
@@ -28,8 +31,12 @@ export const useProjects = () => {
     }
   }, [selectedId]);
 
+  // Загружаем проекты только если есть токен (пользователь авторизован)
   useEffect(() => {
-    load();
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      load();
+    }
   }, [load]);
 
   const selectedProject = useMemo(

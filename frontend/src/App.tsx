@@ -32,6 +32,7 @@ export default function App() {
   const [dark, setDark] = useState(true);
   const theme = useMemo(() => (dark ? darkTheme : lightTheme), [dark]);
   const { user, loading: authLoading, logout, isAuthenticated } = useAuth();
+  // Загружаем проекты только если пользователь авторизован
   const { projects, loading, error, selectedProject, setSelectedId, createProject, refreshProject, refreshProjects } = useProjects();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
