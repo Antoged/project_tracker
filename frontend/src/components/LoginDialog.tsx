@@ -53,7 +53,9 @@ export const LoginDialog = ({ open, onClose }: Props) => {
       setDisplayName("");
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Произошла ошибка");
+      console.error("Auth error:", err);
+      const errorMessage = err.response?.data?.message || err.message || "Произошла ошибка. Проверьте подключение к серверу.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
