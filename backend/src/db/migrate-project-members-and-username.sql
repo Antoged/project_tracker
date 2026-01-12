@@ -17,6 +17,10 @@ WHERE username <> lower(username);
 -- Ensure uniqueness with index (case-insensitive by storing lower)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_unique ON users(username);
 
+-- Enforce NOT NULL after backfill
+ALTER TABLE users
+ALTER COLUMN username SET NOT NULL;
+
 -- 2) Project members table
 CREATE TABLE IF NOT EXISTS project_members (
   project_id VARCHAR(255) NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
