@@ -7,7 +7,15 @@ import projectRoutes from "./routes/projects";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://project-tracker-rho-five.vercel.app",
+    "https://project-tracker-*.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000"
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 app.get("/health", (_req, res) => res.json({ ok: true, time: new Date().toISOString() }));
