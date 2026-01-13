@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -38,6 +38,76 @@ interface Props {
 const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  
+  // Состояние для анимации прогресс-баров каждого этапа
+  const [stageProgressValues, setStageProgressValues] = useState<Record<string, number>>({});
+  const [animatingStages, setAnimatingStages] = useState<Set<string>>(new Set());
+  const prevStatusesRef = useRef<Record<string, Stage["status"]>>({});
+  
+  // Отслеживаем изменения статусов этапов и запускаем анимацию
+  useEffect(() => {
+    project.stages.forEach((stage) => {
+      const prevStatus = prevStatusesRef.current[stage.id];
+      const currentStatus = stage.status;
+      
+      // Если статус изменился с "in_progress" на "done", запускаем анимацию
+      if (prevStatus === "in_progress" && currentStatus === "done") {
+        setAnimatingStages((prev) => new Set(prev).add(stage.id));
+        
+        // Анимация прогресс-бара от 50% до 100%
+        const startValue = 50;
+        const endValue = 100;
+        const duration = 1000; // 1 секунда (как в StageCard)
+        const startTime = Date.now();
+        
+        const animate = () => {
+          const now = Date.now();
+          const progress = Math.min((now - startTime) / duration, 1);
+          const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+          const currentValue = startValue + (endValue - startValue) * easeOutCubic;
+          
+          setStageProgressValues((prev) => ({
+            ...prev,
+            [stage.id]: currentValue
+          }));
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            setStageProgressValues((prev) => ({
+              ...prev,
+              [stage.id]: 100
+            }));
+            setAnimatingStages((prev) => {
+              const next = new Set(prev);
+              next.delete(stage.id);
+              return next;
+            });
+          }
+        };
+        animate();
+      } else if (!animatingStages.has(stage.id)) {
+        // Если не идёт анимация, обновляем значение напрямую
+        const value = currentStatus === "done" ? 100 : currentStatus === "in_progress" ? 50 : 5;
+        setStageProgressValues((prev) => ({
+          ...prev,
+          [stage.id]: value
+        }));
+      }
+      
+      prevStatusesRef.current[stage.id] = currentStatus;
+    });
+  }, [project.stages, animatingStages]);
+  
+  // Инициализируем значения прогресс-баров при первой загрузке
+  useEffect(() => {
+    const initialValues: Record<string, number> = {};
+    project.stages.forEach((stage) => {
+      initialValues[stage.id] = stage.status === "done" ? 100 : stage.status === "in_progress" ? 50 : 5;
+      prevStatusesRef.current[stage.id] = stage.status;
+    });
+    setStageProgressValues(initialValues);
+  }, [project.id]);
   
   return (
     <Card
@@ -116,20 +186,42 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
               </Typography>
               <LinearProgress
                 variant="determinate"
-                value={stage.status === "done" ? 100 : stage.status === "in_progress" ? 50 : 5}
+                value={stageProgressValues[stage.id] ?? (stage.status === "done" ? 100 : stage.status === "in_progress" ? 50 : 5)}
                 sx={{ 
                   flex: 1, 
                   height: 8, 
                   borderRadius: 999,
                   backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
                   "& .MuiLinearProgress-bar": {
-                    background: stage.status === "done"
+                    // Плавный переход цвета при анимации от синего к зелёному
+                    background: animatingStages.has(stage.id)
+                      ? (() => {
+                          const progressValue = stageProgressValues[stage.id] ?? 50;
+                          const progress = (progressValue - 50) / 50; // 0 to 1
+                          // Переход от #7c3aed (фиолетовый) через #2563eb (синий) к #22c55e (зелёный)
+                          const r1 = Math.round(124 + (34 - 124) * progress);
+                          const g1 = Math.round(58 + (197 - 58) * progress);
+                          const b1 = Math.round(237 + (94 - 237) * progress);
+                          const r2 = Math.round(37 + (22 - 37) * progress);
+                          const g2 = Math.round(99 + (197 - 99) * progress);
+                          const b2 = Math.round(235 + (94 - 235) * progress);
+                          return `linear-gradient(90deg, rgb(${r1}, ${g1}, ${b1}), rgb(${r2}, ${g2}, ${b2}))`;
+                        })()
+                      : stage.status === "done"
                       ? "linear-gradient(90deg, #22c55e, #16a34a)"
                       : stage.status === "in_progress"
                       ? "linear-gradient(90deg, #7c3aed, #2563eb)"
                       : "linear-gradient(90deg, #6b7280, #4b5563)",
-                    transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
-                    boxShadow: stage.status === "in_progress" 
+                    transition: animatingStages.has(stage.id)
+                      ? "width 0.05s linear, background 0.05s linear"
+                      : "width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+                    boxShadow: animatingStages.has(stage.id)
+                      ? (() => {
+                          const progressValue = stageProgressValues[stage.id] ?? 50;
+                          const progress = (progressValue - 50) / 50;
+                          return `0 0 10px rgba(${Math.round(124 + (34 - 124) * progress)}, ${Math.round(58 + (197 - 58) * progress)}, ${Math.round(237 + (94 - 237) * progress)}, 0.5)`;
+                        })()
+                      : stage.status === "in_progress" 
                       ? "0 0 10px rgba(124, 58, 237, 0.5)"
                       : stage.status === "done"
                       ? "0 0 10px rgba(34, 197, 94, 0.5)"
