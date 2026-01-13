@@ -8,7 +8,6 @@ import {
   Button,
   Grid,
   Alert,
-  Fade,
   Chip
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
@@ -215,7 +214,7 @@ export default function App() {
             </Alert>
           )}
 
-          {loading && (
+          {loading && projects.length === 0 && (
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Загружаем проекты...
             </Typography>
@@ -225,28 +224,20 @@ export default function App() {
             <Grid container spacing={3}>
             <Grid item xs={12} md={5}>
               <Stack spacing={2}>
-                <Fade in timeout={400}>
-                  <div>
-                    <DashboardWidget projects={projects} />
-                  </div>
-                </Fade>
+                <DashboardWidget projects={projects} />
                 {projects.map((project, index) => (
-                  <Fade in key={project.id} timeout={400 + index * 100}>
-                    <div>
-                      <ProjectCard
-                        project={project}
-                        onSelect={() => handleProjectSelect(project.id)}
-                        selected={selectedProject?.id === project.id}
-                      />
-                    </div>
-                  </Fade>
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onSelect={() => handleProjectSelect(project.id)}
+                    selected={selectedProject?.id === project.id}
+                  />
                 ))}
               </Stack>
             </Grid>
             <Grid item xs={12} md={7}>
               {selectedProject ? (
                 <ProjectDetail 
-                  key={selectedProject.id} 
                   project={selectedProject} 
                   onUpdate={async () => {
                     // Плавное обновление без дергания
@@ -266,61 +257,57 @@ export default function App() {
                   }}
                 />
               ) : (
-                <Fade in timeout={300}>
-                  <Box
-                    sx={{
-                      bgcolor: "background.paper",
-                      borderRadius: 3,
-                      p: 3,
-                      border: "1px dashed",
-                      borderColor: "divider",
-                      textAlign: "center"
-                    }}
-                  >
-                    <Typography variant="body1" color="text.secondary">
-                      Нет проектов. Создайте первый, чтобы увидеть детали.
-                    </Typography>
-                  </Box>
-                </Fade>
+                <Box
+                  sx={{
+                    bgcolor: "background.paper",
+                    borderRadius: 3,
+                    p: 3,
+                    border: "1px dashed",
+                    borderColor: "divider",
+                    textAlign: "center"
+                  }}
+                >
+                  <Typography variant="body1" color="text.secondary">
+                    Нет проектов. Создайте первый, чтобы увидеть детали.
+                  </Typography>
+                </Box>
               )}
             </Grid>
           </Grid>
           )}
 
           {!isAuthenticated && !authLoading && (
-            <Fade in timeout={300}>
-              <Box
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: 3,
+                p: { xs: 3, sm: 6 },
+                border: "1px dashed",
+                borderColor: "divider",
+                textAlign: "center"
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Добро пожаловать в Project Tracker
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                Войдите или зарегистрируйтесь, чтобы создавать проекты, вести этапы и отмечать прогресс в диаграмме Ганта.
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => setLoginDialogOpen(true)}
                 sx={{
-                  bgcolor: "background.paper",
-                  borderRadius: 3,
-                  p: { xs: 3, sm: 6 },
-                  border: "1px dashed",
-                  borderColor: "divider",
-                  textAlign: "center"
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: 4
+                  }
                 }}
               >
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Добро пожаловать в Project Tracker
-                </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                  Войдите или зарегистрируйтесь, чтобы создавать проекты, вести этапы и отмечать прогресс в диаграмме Ганта.
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="large"
-                  onClick={() => setLoginDialogOpen(true)}
-                  sx={{
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                    "&:hover": {
-                      transform: "translateY(-2px)",
-                      boxShadow: 4
-                    }
-                  }}
-                >
-                  Войти / Зарегистрироваться
-                </Button>
-              </Box>
-            </Fade>
+                Войти / Зарегистрироваться
+              </Button>
+            </Box>
           )}
         </Container>
 

@@ -42,10 +42,11 @@ export const useProjects = () => {
     }
   }, [load]);
 
-  const selectedProject = useMemo(
-    () => projects.find((p) => p.id === selectedId) ?? projects[0],
-    [projects, selectedId]
-  );
+  // Оптимистичное переключение - сразу возвращаем проект из кеша
+  const selectedProject = useMemo(() => {
+    if (!selectedId) return null;
+    return projects.find((p) => p.id === selectedId) ?? null;
+  }, [projects, selectedId]);
 
   const handleCreate = useCallback(
     async (name: string, stageCount: number) => {

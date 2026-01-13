@@ -4,7 +4,6 @@ import {
   Divider, 
   Stack, 
   Typography, 
-  Fade, 
   IconButton, 
   TextField, 
   Button,
@@ -142,9 +141,7 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
   };
 
   return (
-    <>
-      <Fade in timeout={300}>
-        <Box
+    <Box
           sx={{
             bgcolor: "background.paper",
             borderRadius: 3,
@@ -302,8 +299,7 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
       </Typography>
       <GanttChart project={project} />
     </Box>
-  </Fade>
-  <ProjectDeleteDialog
+    <ProjectDeleteDialog
     open={deleteDialogOpen}
     projectName={project.name}
     onClose={() => setDeleteDialogOpen(false)}
