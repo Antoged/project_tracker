@@ -54,3 +54,7 @@ export const assignStageAssignee = async (projectId: string, stageId: string, us
   const res = await api.patch<{ project: Project }>(`/projects/${projectId}/stages/${stageId}/assignee`, { username });
   return res.data.project;
 };
+
+export const leaveProject = async (projectId: string): Promise<void> => {
+  await api.delete(`/projects/${projectId}/members/me`);
+};

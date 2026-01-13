@@ -18,7 +18,7 @@ import { Project, Stage } from "../types";
 import { GanttChart } from "./GanttChart";
 import { StageCard } from "./StageCard";
 import { ProjectDeleteDialog } from "./ProjectDeleteDialog";
-import { inviteToProject, updateProjectName, deleteProject } from "../api/projects";
+import { inviteToProject, updateProjectName, deleteProject, leaveProject } from "../api/projects";
 import { useAuth } from "../auth/AuthContext";
 
 const canAdvance = (stages: Stage[], target: Stage) => {
@@ -41,6 +41,7 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [inviteUsername, setInviteUsername] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   
   // Автоматическое обновление проекта каждые 30 секунд (только если вкладка активна)
   useEffect(() => {
@@ -126,6 +127,22 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
     } catch (err) {
       console.error("Failed to delete project:", err);
       throw err;
+    }
+  };
+
+  const handleLeave = async () => {
+    if (!confirm("Вы уверены, что хотите покинуть этот проект? Вы больше не сможете видеть его этапы и прогресс.")) {
+      return;
+    }
+    setLeaving(true);
+    try {
+      await leaveProject(project.id);
+      await onDelete(); // Удаляем проект из списка
+    } catch (err: any) {
+      console.error("Failed to leave project:", err);
+      alert(err?.response?.data?.message || "Не удалось покинуть проект");
+    } finally {
+      setLeaving(false);
     }
   };
 
@@ -252,6 +269,18 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
                 {inviting ? "Приглашаем..." : "Пригласить"}
               </Button>
             </Stack>
+          )}
+
+          {!isAdmin && (
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleLeave}
+              disabled={leaving}
+              sx={{ mb: 3 }}
+            >
+              {leaving ? "Покидаем..." : "Покинуть проект"}
+            </Button>
           )}
 
       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>

@@ -215,18 +215,9 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
               ? "linear-gradient(135deg, rgba(17, 24, 39, 0.7), rgba(17, 24, 39, 0.6))"
               : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7))",
           },
-          // Glow эффект для активных этапов
+          // Glow эффект для активных этапов (без пульсации)
           ...(isInProgress && {
             boxShadow: "0 0 15px rgba(124, 58, 237, 0.3), 0 4px 20px rgba(124, 58, 237, 0.15)",
-            animation: "stage-glow 2s ease-in-out infinite",
-            "@keyframes stage-glow": {
-              "0%, 100%": {
-                boxShadow: "0 0 15px rgba(124, 58, 237, 0.3), 0 4px 20px rgba(124, 58, 237, 0.15)",
-              },
-              "50%": {
-                boxShadow: "0 0 25px rgba(124, 58, 237, 0.5), 0 4px 30px rgba(124, 58, 237, 0.25)",
-              },
-            },
           })
         }}
       >
@@ -271,13 +262,6 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
                   "&:hover": {
                     transform: "scale(1.05)",
                   },
-                  ...(isInProgress && {
-                    animation: "chip-pulse 2s ease-in-out infinite",
-                    "@keyframes chip-pulse": {
-                      "0%, 100%": { transform: "scale(1)" },
-                      "50%": { transform: "scale(1.05)" },
-                    },
-                  }),
                 }}
               />
               <IconButton 

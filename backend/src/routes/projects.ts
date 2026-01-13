@@ -657,5 +657,46 @@ router.delete("/:projectId", requireAuth, async (req: AuthRequest, res) => {
   }
 });
 
+// Покинуть проект (удалить себя из участников)
+router.delete("/:projectId/members/me", requireAuth, async (req: AuthRequest, res) => {
+  const userId = req.user?.userId;
+  if (!userId) return res.status(401).json({ message: "Необходим токен" });
+  const projectId = req.params.projectId;
+  const client = await pool.connect();
+  try {
+    // Проверяем, что пользователь является участником проекта
+    const memberRole = await requireProjectMember(client, projectId, userId);
+    if (!memberRole) {
+      return res.status(404).json({ message: "Вы не являетесь участником этого проекта" });
+    }
+
+    // Проверяем, что пользователь не является единственным админом
+    const adminsResult = await client.query(
+      "SELECT COUNT(*) as count FROM project_members WHERE project_id = $1 AND role = 'admin'",
+      [projectId]
+    );
+    const adminCount = parseInt(adminsResult.rows[0].count);
+    
+    if (memberRole === "admin" && adminCount === 1) {
+      return res.status(400).json({ 
+        message: "Нельзя покинуть проект, если вы единственный администратор. Сначала передайте права другому участнику или удалите проект." 
+      });
+    }
+
+    // Удаляем участника из проекта
+    await client.query(
+      "DELETE FROM project_members WHERE project_id = $1 AND user_id = $2",
+      [projectId, userId]
+    );
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("[projects] Leave project error:", err);
+    return res.status(500).json({ message: "Ошибка при выходе из проекта" });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;
 
