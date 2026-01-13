@@ -101,10 +101,17 @@ export default function App() {
                     sx={{ 
                       mr: 1,
                       cursor: "pointer",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
                       transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                       "&:hover": {
-                        transform: "scale(1.05)",
-                        boxShadow: 2
+                        boxShadow: 2,
+                        borderColor: "primary.main",
+                        bgcolor: "action.hover"
+                      },
+                      "& .MuiChip-label": {
+                        fontSize: "0.875rem",
+                        fontWeight: 500
                       }
                     }}
                   />
