@@ -23,6 +23,7 @@ import { ProjectCard } from "./components/ProjectCard";
 import { ProjectDetail } from "./components/ProjectDetail";
 import { ProjectCreateDialog } from "./components/ProjectCreateDialog";
 import { LoginDialog } from "./components/LoginDialog";
+import { ProfilePopover } from "./components/ProfilePopover";
 import { fetchProjects } from "./api/projects";
 
 const gradientBg =
@@ -36,6 +37,7 @@ export default function App() {
   const { projects, loading, error, selectedProject, setSelectedId, createProject, refreshProject, refreshProjects, reload } = useProjects();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [profileAnchorEl, setProfileAnchorEl] = useState<HTMLElement | null>(null);
 
   // После успешного логина / регистрации подгружаем проекты
   useEffect(() => {
@@ -95,7 +97,16 @@ export default function App() {
                     label={user?.username ? `@${user.username}` : (user?.displayName || user?.email)} 
                     color="primary" 
                     variant="outlined"
-                    sx={{ mr: 1 }}
+                    onClick={(e) => setProfileAnchorEl(e.currentTarget)}
+                    sx={{ 
+                      mr: 1,
+                      cursor: "pointer",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      "&:hover": {
+                        transform: "scale(1.05)",
+                        boxShadow: 2
+                      }
+                    }}
                   />
                   <Button 
                     variant="contained" 
@@ -280,6 +291,14 @@ export default function App() {
           open={loginDialogOpen}
           onClose={() => setLoginDialogOpen(false)}
         />
+        {user && (
+          <ProfilePopover
+            user={user}
+            onLogout={logout}
+            anchorEl={profileAnchorEl}
+            onClose={() => setProfileAnchorEl(null)}
+          />
+        )}
       </Box>
     </ThemeProvider>
   );

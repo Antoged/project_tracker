@@ -41,6 +41,37 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [inviteUsername, setInviteUsername] = useState("");
   const [inviting, setInviting] = useState(false);
+  
+  // Автоматическое обновление проекта каждые 30 секунд (только если вкладка активна)
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Вкладка неактивна - останавливаем обновление
+        if (intervalId) clearInterval(intervalId);
+      } else {
+        // Вкладка активна - запускаем обновление
+        intervalId = setInterval(() => {
+          onUpdate().catch(console.error);
+        }, 30000); // 30 секунд
+      }
+    };
+    
+    // Запускаем обновление если вкладка активна
+    if (!document.hidden) {
+      intervalId = setInterval(() => {
+        onUpdate().catch(console.error);
+      }, 30000);
+    }
+    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [onUpdate]);
 
   // Синхронизируем название с пропсами
   useEffect(() => {

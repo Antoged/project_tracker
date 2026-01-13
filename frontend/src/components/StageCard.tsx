@@ -8,7 +8,8 @@ import {
   Stack,
   TextField,
   Typography,
-  Fade
+  Fade,
+  useTheme
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
@@ -51,6 +52,8 @@ interface Props {
 }
 
 const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }: Props) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notes, setNotes] = useState(stage.notes || "");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -143,13 +146,28 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
         sx={{
           p: 2,
           borderRadius: 2,
-          bgcolor: "background.paper",
+          // Glassmorphism эффект
+          background: isDark
+            ? "rgba(17, 24, 39, 0.6)"
+            : "rgba(255, 255, 255, 0.7)",
+          backdropFilter: "blur(20px)",
           border: "1px solid",
-          borderColor: isInProgress ? "primary.main" : "divider",
+          borderColor: isInProgress 
+            ? "primary.main" 
+            : isDark 
+              ? "rgba(255, 255, 255, 0.1)" 
+              : "rgba(0, 0, 0, 0.1)",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": {
-            boxShadow: 2,
-            transform: "translateY(-2px)"
+            boxShadow: isInProgress 
+              ? "0 8px 32px rgba(124, 58, 237, 0.25)" 
+              : "0 8px 32px rgba(0, 0, 0, 0.1)",
+            transform: "translateY(-2px)",
+            borderColor: isInProgress 
+              ? "primary.main" 
+              : isDark 
+                ? "rgba(255, 255, 255, 0.2)" 
+                : "rgba(0, 0, 0, 0.15)"
           }
         }}
       >
@@ -305,7 +323,10 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
               sx={{
                 p: 1.5,
                 borderRadius: 1,
-                bgcolor: stage.notes ? "action.hover" : "transparent",
+                bgcolor: stage.notes 
+                  ? (isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)")
+                  : "transparent",
+                backdropFilter: stage.notes ? "blur(10px)" : "none",
                 fontStyle: stage.notes ? "normal" : "italic",
                 minHeight: 40,
                 whiteSpace: "pre-wrap"

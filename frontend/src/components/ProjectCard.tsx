@@ -6,7 +6,8 @@ import {
   LinearProgress,
   Stack,
   Typography,
-  CardActionArea
+  CardActionArea,
+  useTheme
 } from "@mui/material";
 import { Project, Stage } from "../types";
 import dayjs from "dayjs";
@@ -34,15 +35,30 @@ interface Props {
   selected?: boolean;
 }
 
-const ProjectCardComponent = ({ project, onSelect, selected }: Props) => (
-  <Card
-    elevation={selected ? 2 : 0}
-    sx={{
-      borderRadius: 3,
-      border: "1px solid",
-      borderColor: selected ? "primary.main" : "divider"
-    }}
-  >
+const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  
+  return (
+    <Card
+      elevation={0}
+      sx={{
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: selected ? "primary.main" : isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+        // Glassmorphism эффект
+        background: isDark
+          ? "rgba(17, 24, 39, 0.6)"
+          : "rgba(255, 255, 255, 0.7)",
+        backdropFilter: "blur(20px)",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: selected ? "0 12px 40px rgba(124, 58, 237, 0.3)" : "0 8px 32px rgba(0, 0, 0, 0.15)",
+          borderColor: selected ? "primary.main" : isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.15)"
+        }
+      }}
+    >
     <CardActionArea onClick={onSelect}>
       <CardContent>
         <Typography variant="h6" sx={{ mb: 1 }}>
@@ -55,7 +71,12 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => (
               direction="row"
               alignItems="center"
               spacing={1.2}
-              sx={{ bgcolor: "action.hover", p: 1.25, borderRadius: 2 }}
+              sx={{ 
+                bgcolor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)",
+                p: 1.25, 
+                borderRadius: 2,
+                backdropFilter: "blur(10px)"
+              }}
             >
               <Chip label={stage.title} color={statusColor(stage.status)} size="small" />
               <Typography variant="body2" color="text.secondary">
@@ -83,7 +104,8 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => (
       </CardContent>
     </CardActionArea>
   </Card>
-);
+  );
+};
 
 export const ProjectCard = memo(ProjectCardComponent, (prevProps, nextProps) => {
   // Оптимизация: перерисовываем только если изменился selected или данные проекта

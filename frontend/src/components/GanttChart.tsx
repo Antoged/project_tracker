@@ -58,6 +58,38 @@ export const GanttChart = ({ project }: Props) => {
     
     ganttRef.current = gantt;
     
+    // Добавляем классы и стили для "живой" диаграммы после рендера
+    setTimeout(() => {
+      const bars = ref.current?.querySelectorAll(".bar-wrapper");
+      bars?.forEach((barWrapper, index) => {
+        const stage = project.stages[index];
+        if (!stage) return;
+        
+        const bar = barWrapper.querySelector(".bar") as HTMLElement;
+        if (!bar) return;
+        
+        // Добавляем data-атрибут для статуса
+        bar.setAttribute("data-stage-status", stage.status);
+        
+        // Для активных этапов добавляем пульсирующий индикатор
+        if (stage.status === "in_progress") {
+          bar.style.position = "relative";
+          // Проверяем, не добавлен ли уже индикатор
+          if (!bar.querySelector(".gantt-pulse-dot")) {
+            const pulseDot = document.createElement("div");
+            pulseDot.className = "gantt-pulse-dot";
+            bar.appendChild(pulseDot);
+          }
+        }
+        
+        // Плавная анимация прогресса
+        const progressBar = bar.querySelector(".bar-progress") as HTMLElement;
+        if (progressBar) {
+          progressBar.style.transition = "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+        }
+      });
+    }, 200);
+    
     return () => {
       try {
         if (ganttRef.current) {
@@ -181,11 +213,56 @@ export const GanttChart = ({ project }: Props) => {
   }, [project.id]);
 
   return (
-    <Box
-      ref={ref}
-      key={`gantt-${project.id}`}
-      className="gantt-scroll-container"
-      sx={{
+    <>
+      <style>{`
+        @keyframes gantt-pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: translateY(-50%) scale(1.3);
+          }
+        }
+        
+        .gantt-pulse-dot {
+          position: absolute;
+          right: -8px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 12px;
+          height: 12px;
+          background: linear-gradient(135deg, #7c3aed, #2563eb);
+          border-radius: 50%;
+          box-shadow: 0 0 8px rgba(124, 58, 237, 0.6);
+          animation: gantt-pulse 2s ease-in-out infinite;
+          z-index: 10;
+        }
+        
+        .bar[data-stage-status="in_progress"] {
+          animation: gantt-bar-glow 2s ease-in-out infinite;
+          position: relative;
+        }
+        
+        @keyframes gantt-bar-glow {
+          0%, 100% {
+            box-shadow: 0 0 0 rgba(124, 58, 237, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.6), 0 0 20px rgba(37, 99, 235, 0.4);
+          }
+        }
+        
+        .bar-progress {
+          transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+      `}</style>
+      <Box
+        ref={ref}
+        key={`gantt-${project.id}`}
+        className="gantt-scroll-container"
+        sx={{
         width: "100%",
         overflowX: "auto",
         overflowY: "hidden",
@@ -228,7 +305,8 @@ export const GanttChart = ({ project }: Props) => {
           ? "rgba(124, 58, 237, 0.6) rgba(255, 255, 255, 0.08)"
           : "rgba(124, 58, 237, 0.5) rgba(0, 0, 0, 0.08)"
       }}
-    />
+      />
+    </>
   );
 };
 
