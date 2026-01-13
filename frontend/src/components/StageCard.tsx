@@ -158,18 +158,35 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
               ? "rgba(255, 255, 255, 0.1)" 
               : "rgba(0, 0, 0, 0.1)",
           // Плавные переходы для всех свойств отдельно
-          transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          transformStyle: "preserve-3d",
           "&:hover": {
             boxShadow: isInProgress 
-              ? "0 6px 24px rgba(124, 58, 237, 0.18)" 
+              ? "0 6px 24px rgba(124, 58, 237, 0.18), 0 0 20px rgba(124, 58, 237, 0.1)" 
               : "0 6px 20px rgba(0, 0, 0, 0.08)",
-            transform: "translateY(-2px)",
+            transform: "translateY(-2px) rotateX(1deg) rotateY(-1deg)",
             borderColor: isInProgress 
               ? "primary.main" 
               : isDark 
                 ? "rgba(255, 255, 255, 0.18)" 
-                : "rgba(0, 0, 0, 0.12)"
-          }
+                : "rgba(0, 0, 0, 0.12)",
+            background: isDark
+              ? "linear-gradient(135deg, rgba(17, 24, 39, 0.7), rgba(17, 24, 39, 0.6))"
+              : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7))",
+          },
+          // Glow эффект для активных этапов
+          ...(isInProgress && {
+            boxShadow: "0 0 15px rgba(124, 58, 237, 0.3), 0 4px 20px rgba(124, 58, 237, 0.15)",
+            animation: "stage-glow 2s ease-in-out infinite",
+            "@keyframes stage-glow": {
+              "0%, 100%": {
+                boxShadow: "0 0 15px rgba(124, 58, 237, 0.3), 0 4px 20px rgba(124, 58, 237, 0.15)",
+              },
+              "50%": {
+                boxShadow: "0 0 25px rgba(124, 58, 237, 0.5), 0 4px 30px rgba(124, 58, 237, 0.25)",
+              },
+            },
+          })
         }}
       >
       <Stack spacing={1.5}>
@@ -204,8 +221,35 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
             </Stack>
           ) : (
             <Stack direction="row" spacing={1} alignItems="center">
-              <Chip label={stage.title} size="small" color={statusColor(stage.status)} />
-              <IconButton size="small" onClick={() => setIsEditingTitle(true)} disabled={saving}>
+              <Chip 
+                label={stage.title} 
+                size="small" 
+                color={statusColor(stage.status)}
+                sx={{
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "scale(1.05)",
+                  },
+                  ...(isInProgress && {
+                    animation: "chip-pulse 2s ease-in-out infinite",
+                    "@keyframes chip-pulse": {
+                      "0%, 100%": { transform: "scale(1)" },
+                      "50%": { transform: "scale(1.05)" },
+                    },
+                  }),
+                }}
+              />
+              <IconButton 
+                size="small" 
+                onClick={() => setIsEditingTitle(true)} 
+                disabled={saving}
+                sx={{
+                  transition: "all 0.3s ease",
+                  "&:hover:not(:disabled)": {
+                    transform: "scale(1.2) rotate(15deg)",
+                  },
+                }}
+              >
                 <EditIcon fontSize="small" />
               </IconButton>
             </Stack>
@@ -216,7 +260,24 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
           <LinearProgress
             variant="determinate"
             value={isDone ? 100 : isInProgress ? 50 : 5}
-            sx={{ flex: 1, height: 8, borderRadius: 999, minWidth: 100 }}
+            sx={{ 
+              flex: 1, 
+              height: 8, 
+              borderRadius: 999, 
+              minWidth: 100,
+              backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+              "& .MuiLinearProgress-bar": {
+                background: isDone
+                  ? "linear-gradient(90deg, #22c55e, #16a34a)"
+                  : isInProgress
+                  ? "linear-gradient(90deg, #7c3aed, #2563eb)"
+                  : "linear-gradient(90deg, #6b7280, #4b5563)",
+                transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: isInProgress 
+                  ? "0 0 10px rgba(124, 58, 237, 0.5)"
+                  : "none",
+              }
+            }}
           />
           <Typography
             variant="body2"

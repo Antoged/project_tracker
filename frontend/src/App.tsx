@@ -24,6 +24,8 @@ import { ProjectDetail } from "./components/ProjectDetail";
 import { ProjectCreateDialog } from "./components/ProjectCreateDialog";
 import { LoginDialog } from "./components/LoginDialog";
 import { ProfilePopover } from "./components/ProfilePopover";
+import { AnimatedBackground } from "./components/AnimatedBackground";
+import { DashboardWidget } from "./components/DashboardWidget";
 import { fetchProjects } from "./api/projects";
 
 const gradientBg =
@@ -49,13 +51,15 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <AnimatedBackground />
       <Box
         sx={{
+          position: "relative",
+          zIndex: 1,
           minHeight: "100vh",
           maxHeight: "100vh",
           overflowY: "auto",
           overflowX: "hidden",
-          background: dark ? gradientBg : "linear-gradient(180deg,#eef2ff,#f8fafc)",
           // Скрытие скроллбара
           "&::-webkit-scrollbar": {
             width: "0px",
@@ -120,10 +124,23 @@ export default function App() {
                     onClick={() => setDialogOpen(true)}
                     fullWidth={false}
                     sx={{
+                      background: "linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)",
+                      backgroundSize: "200% 200%",
+                      animation: "gradient-shift 3s ease infinite",
                       transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      boxShadow: "0 4px 15px rgba(124, 58, 237, 0.4)",
+                      "@keyframes gradient-shift": {
+                        "0%, 100%": { backgroundPosition: "0% 50%" },
+                        "50%": { backgroundPosition: "100% 50%" },
+                      },
                       "&:hover": {
                         transform: "translateY(-2px)",
-                        boxShadow: 4
+                        boxShadow: "0 6px 20px rgba(124, 58, 237, 0.6)",
+                        animation: "gradient-shift 1.5s ease infinite, button-glow 2s ease-in-out infinite",
+                        "@keyframes button-glow": {
+                          "0%, 100%": { boxShadow: "0 6px 20px rgba(124, 58, 237, 0.6)" },
+                          "50%": { boxShadow: "0 6px 30px rgba(124, 58, 237, 0.8)" },
+                        },
                       }
                     }}
                   >
@@ -148,10 +165,18 @@ export default function App() {
                   variant="contained" 
                   onClick={() => setLoginDialogOpen(true)}
                   sx={{
+                    background: "linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)",
+                    backgroundSize: "200% 200%",
+                    animation: "gradient-shift 3s ease infinite",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    boxShadow: "0 4px 15px rgba(124, 58, 237, 0.4)",
+                    "@keyframes gradient-shift": {
+                      "0%, 100%": { backgroundPosition: "0% 50%" },
+                      "50%": { backgroundPosition: "100% 50%" },
+                    },
                     "&:hover": {
                       transform: "translateY(-2px)",
-                      boxShadow: 4
+                      boxShadow: "0 6px 20px rgba(124, 58, 237, 0.6)",
                     }
                   }}
                 >
@@ -195,8 +220,13 @@ export default function App() {
             <Grid container spacing={3}>
             <Grid item xs={12} md={5}>
               <Stack spacing={2}>
-                {projects.map((project) => (
-                  <Fade in key={project.id} timeout={300}>
+                <Fade in timeout={400}>
+                  <div>
+                    <DashboardWidget projects={projects} />
+                  </div>
+                </Fade>
+                {projects.map((project, index) => (
+                  <Fade in key={project.id} timeout={400 + index * 100}>
                     <div>
                       <ProjectCard
                         project={project}

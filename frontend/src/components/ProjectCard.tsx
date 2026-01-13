@@ -52,11 +52,31 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
           : "rgba(255, 255, 255, 0.7)",
         backdropFilter: "blur(20px)",
         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+        transformStyle: "preserve-3d",
+        perspective: "1000px",
         "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: selected ? "0 12px 40px rgba(124, 58, 237, 0.3)" : "0 8px 32px rgba(0, 0, 0, 0.15)",
-          borderColor: selected ? "primary.main" : isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.15)"
+          transform: "translateY(-4px) rotateX(2deg) rotateY(-2deg)",
+          boxShadow: selected 
+            ? "0 12px 40px rgba(124, 58, 237, 0.3), 0 0 30px rgba(124, 58, 237, 0.2)" 
+            : "0 8px 32px rgba(0, 0, 0, 0.15)",
+          borderColor: selected ? "primary.main" : isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.15)",
+          background: isDark
+            ? "linear-gradient(135deg, rgba(17, 24, 39, 0.7), rgba(17, 24, 39, 0.6))"
+            : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7))",
         },
+        // Glow эффект для выбранного проекта
+        ...(selected && {
+          boxShadow: "0 0 20px rgba(124, 58, 237, 0.4), 0 8px 32px rgba(124, 58, 237, 0.2)",
+          animation: "selected-glow 2s ease-in-out infinite",
+          "@keyframes selected-glow": {
+            "0%, 100%": {
+              boxShadow: "0 0 20px rgba(124, 58, 237, 0.4), 0 8px 32px rgba(124, 58, 237, 0.2)",
+            },
+            "50%": {
+              boxShadow: "0 0 30px rgba(124, 58, 237, 0.6), 0 8px 40px rgba(124, 58, 237, 0.3)",
+            },
+          },
+        }),
         // Убираем засвет самой карточки при hover (CardActionArea делает background ярче)
         "& .MuiCardActionArea-root": {
           "&:hover": {
@@ -95,7 +115,23 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
               <LinearProgress
                 variant="determinate"
                 value={stage.status === "done" ? 100 : stage.status === "in_progress" ? 50 : 5}
-                sx={{ flex: 1, height: 8, borderRadius: 999 }}
+                sx={{ 
+                  flex: 1, 
+                  height: 8, 
+                  borderRadius: 999,
+                  backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                  "& .MuiLinearProgress-bar": {
+                    background: stage.status === "done"
+                      ? "linear-gradient(90deg, #22c55e, #16a34a)"
+                      : stage.status === "in_progress"
+                      ? "linear-gradient(90deg, #7c3aed, #2563eb)"
+                      : "linear-gradient(90deg, #6b7280, #4b5563)",
+                    transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                    boxShadow: stage.status === "in_progress" 
+                      ? "0 0 10px rgba(124, 58, 237, 0.5)"
+                      : "none",
+                  }
+                }}
               />
               <Typography
                 variant="body2"
