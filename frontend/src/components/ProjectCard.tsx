@@ -64,18 +64,9 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
             ? "linear-gradient(135deg, rgba(17, 24, 39, 0.7), rgba(17, 24, 39, 0.6))"
             : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7))",
         },
-        // Glow эффект для выбранного проекта
+        // Glow эффект для выбранного проекта (без пульсации)
         ...(selected && {
           boxShadow: "0 0 20px rgba(124, 58, 237, 0.4), 0 8px 32px rgba(124, 58, 237, 0.2)",
-          animation: "selected-glow 2s ease-in-out infinite",
-          "@keyframes selected-glow": {
-            "0%, 100%": {
-              boxShadow: "0 0 20px rgba(124, 58, 237, 0.4), 0 8px 32px rgba(124, 58, 237, 0.2)",
-            },
-            "50%": {
-              boxShadow: "0 0 30px rgba(124, 58, 237, 0.6), 0 8px 40px rgba(124, 58, 237, 0.3)",
-            },
-          },
         }),
         // Убираем засвет самой карточки при hover (CardActionArea делает background ярче)
         "& .MuiCardActionArea-root": {

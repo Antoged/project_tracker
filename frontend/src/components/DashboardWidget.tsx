@@ -1,6 +1,6 @@
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { Project, Stage } from "../types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface Props {
   projects: Project[];
@@ -13,6 +13,9 @@ export const DashboardWidget = ({ projects }: Props) => {
   const [activeProjects, setActiveProjects] = useState(0);
   const [completedStages, setCompletedStages] = useState(0);
   const [totalStages, setTotalStages] = useState(0);
+  
+  // Храним предыдущие значения для плавной анимации
+  const prevValuesRef = useRef({ active: 0, completed: 0, total: 0 });
 
   // Подсчитываем статистику
   useEffect(() => {
@@ -26,13 +29,19 @@ export const DashboardWidget = ({ projects }: Props) => {
     
     const total = projects.reduce((acc, p) => acc + p.stages.length, 0);
     
-    // Анимируем счётчики
+    // Анимируем счётчики от предыдущего значения к новому (не с нуля!)
     const animateValue = (
       setter: (val: number) => void,
       start: number,
       end: number,
       duration: number
     ) => {
+      // Если значения одинаковые, не анимируем
+      if (start === end) {
+        setter(end);
+        return;
+      }
+      
       const startTime = Date.now();
       const animate = () => {
         const now = Date.now();
@@ -41,14 +50,20 @@ export const DashboardWidget = ({ projects }: Props) => {
         setter(Math.round(start + (end - start) * easeOutQuart));
         if (progress < 1) {
           requestAnimationFrame(animate);
+        } else {
+          setter(end); // Убеждаемся, что финальное значение точное
         }
       };
       animate();
     };
     
-    animateValue(setActiveProjects, 0, active, 800);
-    animateValue(setCompletedStages, 0, completed, 1000);
-    animateValue(setTotalStages, 0, total, 1200);
+    // Анимируем от предыдущих значений к новым
+    animateValue(setActiveProjects, prevValuesRef.current.active, active, 600);
+    animateValue(setCompletedStages, prevValuesRef.current.completed, completed, 800);
+    animateValue(setTotalStages, prevValuesRef.current.total, total, 1000);
+    
+    // Сохраняем новые значения для следующего обновления
+    prevValuesRef.current = { active, completed, total };
   }, [projects]);
 
   const progressPercent = totalStages > 0 ? (completedStages / totalStages) * 100 : 0;
