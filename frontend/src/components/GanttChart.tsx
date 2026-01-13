@@ -59,13 +59,31 @@ export const GanttChart = ({ project }: Props) => {
     ganttRef.current = gantt;
     
     // Добавляем классы и стили для "живой" диаграммы после рендера
-    setTimeout(() => {
+    // Используем несколько попыток, так как frappe-gantt рендерится асинхронно
+    const applyAnimations = () => {
       const bars = ref.current?.querySelectorAll(".bar-wrapper");
-      bars?.forEach((barWrapper, index) => {
+      if (!bars || bars.length === 0) {
+        // Если бары ещё не отрендерились, пробуем ещё раз
+        setTimeout(applyAnimations, 100);
+        return;
+      }
+      
+      bars.forEach((barWrapper, index) => {
         const stage = project.stages[index];
         if (!stage) return;
         
-        const bar = barWrapper.querySelector(".bar") as HTMLElement;
+        // Пробуем разные селекторы для поиска бара
+        let bar = barWrapper.querySelector(".bar") as HTMLElement;
+        if (!bar) {
+          bar = barWrapper.querySelector(".bar-wrapper-inner .bar") as HTMLElement;
+        }
+        if (!bar) {
+          // Если не нашли, ищем по структуре
+          const inner = barWrapper.querySelector(".bar-wrapper-inner");
+          if (inner) {
+            bar = inner.querySelector(".bar") as HTMLElement;
+          }
+        }
         if (!bar) return;
         
         // Добавляем data-атрибут для статуса
@@ -74,12 +92,21 @@ export const GanttChart = ({ project }: Props) => {
         // Для активных этапов добавляем пульсирующий индикатор
         if (stage.status === "in_progress") {
           bar.style.position = "relative";
-          // Проверяем, не добавлен ли уже индикатор
-          if (!bar.querySelector(".gantt-pulse-dot")) {
-            const pulseDot = document.createElement("div");
-            pulseDot.className = "gantt-pulse-dot";
-            bar.appendChild(pulseDot);
+          bar.style.zIndex = "10";
+          
+          // Удаляем старый индикатор если есть
+          const oldDot = bar.querySelector(".gantt-pulse-dot");
+          if (oldDot) {
+            oldDot.remove();
           }
+          
+          // Создаём новый пульсирующий индикатор
+          const pulseDot = document.createElement("div");
+          pulseDot.className = "gantt-pulse-dot";
+          bar.appendChild(pulseDot);
+          
+          // Добавляем класс для свечения
+          bar.classList.add("gantt-bar-active");
         }
         
         // Плавная анимация прогресса
@@ -88,7 +115,11 @@ export const GanttChart = ({ project }: Props) => {
           progressBar.style.transition = "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
         }
       });
-    }, 200);
+    };
+    
+    // Первая попытка через 300ms, затем ещё через 500ms если не сработало
+    setTimeout(applyAnimations, 300);
+    setTimeout(applyAnimations, 800);
     
     return () => {
       try {
@@ -227,30 +258,32 @@ export const GanttChart = ({ project }: Props) => {
         }
         
         .gantt-pulse-dot {
-          position: absolute;
-          right: -8px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 12px;
-          height: 12px;
-          background: linear-gradient(135deg, #7c3aed, #2563eb);
-          border-radius: 50%;
-          box-shadow: 0 0 8px rgba(124, 58, 237, 0.6);
-          animation: gantt-pulse 2s ease-in-out infinite;
-          z-index: 10;
+          position: absolute !important;
+          right: -10px !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          width: 16px !important;
+          height: 16px !important;
+          background: linear-gradient(135deg, #7c3aed, #2563eb) !important;
+          border-radius: 50% !important;
+          box-shadow: 0 0 12px rgba(124, 58, 237, 0.8), 0 0 20px rgba(37, 99, 235, 0.6) !important;
+          animation: gantt-pulse 2s ease-in-out infinite !important;
+          z-index: 1000 !important;
+          pointer-events: none;
         }
         
-        .bar[data-stage-status="in_progress"] {
-          animation: gantt-bar-glow 2s ease-in-out infinite;
-          position: relative;
+        .bar[data-stage-status="in_progress"],
+        .gantt-bar-active {
+          animation: gantt-bar-glow 2s ease-in-out infinite !important;
+          position: relative !important;
         }
         
         @keyframes gantt-bar-glow {
           0%, 100% {
-            box-shadow: 0 0 0 rgba(124, 58, 237, 0.3);
+            box-shadow: 0 0 0 rgba(124, 58, 237, 0.4), inset 0 0 10px rgba(124, 58, 237, 0.2) !important;
           }
           50% {
-            box-shadow: 0 0 12px rgba(124, 58, 237, 0.6), 0 0 20px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 0 16px rgba(124, 58, 237, 0.8), 0 0 24px rgba(37, 99, 235, 0.6), inset 0 0 15px rgba(124, 58, 237, 0.3) !important;
           }
         }
         
