@@ -6,7 +6,7 @@ import {
   Typography,
   Avatar,
   Divider,
-  IconButton,
+  Button,
   useTheme
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -97,10 +97,11 @@ export const ProfilePopover = ({ user, onLogout, anchorEl, onClose }: Props) => 
           </Box>
         </Stack>
         <Divider sx={{ my: 1.5 }} />
-        <IconButton
+        <Button
           onClick={handleLogout}
           color="error"
           fullWidth
+          startIcon={<LogoutIcon />}
           sx={{
             justifyContent: "flex-start",
             px: 1.5,
@@ -113,9 +114,8 @@ export const ProfilePopover = ({ user, onLogout, anchorEl, onClose }: Props) => 
             }
           }}
         >
-          <LogoutIcon sx={{ mr: 1.5 }} />
-          <Typography variant="body2">Выйти</Typography>
-        </IconButton>
+          Выйти
+        </Button>
       </Box>
     </Popover>
   );

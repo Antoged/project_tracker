@@ -44,7 +44,7 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
   
   // Автоматическое обновление проекта каждые 30 секунд (только если вкладка активна)
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: number | undefined;
     
     const handleVisibilityChange = () => {
       if (document.hidden) {
