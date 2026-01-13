@@ -141,6 +141,7 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
   };
 
   return (
+    <>
     <Box
           sx={{
             bgcolor: "background.paper",
