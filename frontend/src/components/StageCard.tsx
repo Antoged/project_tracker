@@ -62,12 +62,19 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
   const [completing, setCompleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // Локальное состояние для плавной анимации прогресс-бара
+  const [animatingProgress, setAnimatingProgress] = useState(false);
+  const [progressValue, setProgressValue] = useState(stage.status === "done" ? 100 : stage.status === "in_progress" ? 50 : 5);
 
   // Синхронизируем локальное состояние с пропсами
   useEffect(() => {
     setNotes(stage.notes || "");
     setTitle(stage.title || "");
-  }, [stage.notes, stage.title]);
+    // Обновляем прогресс только если не идёт анимация
+    if (!animatingProgress) {
+      setProgressValue(stage.status === "done" ? 100 : stage.status === "in_progress" ? 50 : 5);
+    }
+  }, [stage.notes, stage.title, stage.status, animatingProgress]);
 
   const handleSaveTitle = async () => {
     const next = title.trim();
@@ -110,12 +117,46 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
   const handleComplete = async () => {
     if (!canComplete) return;
     setCompleting(true);
+    setAnimatingProgress(true);
+    
+    // Плавная анимация прогресс-бара от 50% до 100% и изменение цвета
+    const animateProgress = () => {
+      const startValue = 50;
+      const endValue = 100;
+      const duration = 1000; // 1 секунда
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const now = Date.now();
+        const progress = Math.min((now - startTime) / duration, 1);
+        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+        setProgressValue(startValue + (endValue - startValue) * easeOutCubic);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setProgressValue(100);
+        }
+      };
+      animate();
+    };
+    
+    // Запускаем анимацию
+    animateProgress();
+    
     try {
+      // Ждём немного перед обновлением статуса, чтобы анимация началась
+      await new Promise(resolve => setTimeout(resolve, 100));
       await updateStageStatus(projectId, stage.id, "done");
+      // Ждём завершения анимации перед обновлением
+      await new Promise(resolve => setTimeout(resolve, 900));
       // Тихая синхронизация без дергания
       await onUpdate();
+      setAnimatingProgress(false);
     } catch (err) {
       console.error("Failed to complete stage:", err);
+      setAnimatingProgress(false);
+      setProgressValue(stage.status === "in_progress" ? 50 : 5);
       alert("Не удалось завершить этап. Убедитесь, что предыдущий этап завершён.");
     } finally {
       setCompleting(false);
@@ -259,7 +300,7 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
           </Typography>
           <LinearProgress
             variant="determinate"
-            value={isDone ? 100 : isInProgress ? 50 : 5}
+            value={animatingProgress ? progressValue : (isDone ? 100 : isInProgress ? 50 : 5)}
             sx={{ 
               flex: 1, 
               height: 8, 
@@ -267,14 +308,37 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
               minWidth: 100,
               backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
               "& .MuiLinearProgress-bar": {
-                background: isDone
+                // Плавный переход цвета при анимации от синего к зелёному
+                background: animatingProgress
+                  ? (() => {
+                      const progress = (progressValue - 50) / 50; // 0 to 1
+                      // Переход от #7c3aed (фиолетовый) через #2563eb (синий) к #22c55e (зелёный)
+                      const r1 = Math.round(124 + (34 - 124) * progress);
+                      const g1 = Math.round(58 + (197 - 58) * progress);
+                      const b1 = Math.round(237 + (94 - 237) * progress);
+                      const r2 = Math.round(37 + (22 - 37) * progress);
+                      const g2 = Math.round(99 + (197 - 99) * progress);
+                      const b2 = Math.round(235 + (94 - 235) * progress);
+                      return `linear-gradient(90deg, rgb(${r1}, ${g1}, ${b1}), rgb(${r2}, ${g2}, ${b2}))`;
+                    })()
+                  : isDone
                   ? "linear-gradient(90deg, #22c55e, #16a34a)"
                   : isInProgress
                   ? "linear-gradient(90deg, #7c3aed, #2563eb)"
                   : "linear-gradient(90deg, #6b7280, #4b5563)",
-                transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-                boxShadow: isInProgress 
+                transition: animatingProgress
+                  ? "width 0.05s linear, background 0.05s linear"
+                  : "width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: animatingProgress
+                  ? (() => {
+                      const progress = (progressValue - 50) / 50;
+                      const opacity = 0.5 + (0.5 - 0.5) * progress; // Плавное изменение свечения
+                      return `0 0 10px rgba(${Math.round(124 + (34 - 124) * progress)}, ${Math.round(58 + (197 - 58) * progress)}, ${Math.round(237 + (94 - 237) * progress)}, ${opacity})`;
+                    })()
+                  : isInProgress
                   ? "0 0 10px rgba(124, 58, 237, 0.5)"
+                  : isDone
+                  ? "0 0 10px rgba(34, 197, 94, 0.5)"
                   : "none",
               }
             }}

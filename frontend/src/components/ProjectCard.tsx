@@ -54,6 +54,7 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
         transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         transformStyle: "preserve-3d",
         perspective: "1000px",
+        willChange: "transform, box-shadow",
         "&:hover": {
           transform: "translateY(-4px) rotateX(2deg) rotateY(-2deg)",
           boxShadow: selected 
@@ -76,7 +77,17 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
         }
       }}
     >
-    <CardActionArea onClick={onSelect} sx={{ "&:hover": { backgroundColor: "transparent !important" } }}>
+    <CardActionArea 
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onSelect?.();
+      }}
+      sx={{ 
+        "&:hover": { backgroundColor: "transparent !important" },
+        "&:active": { backgroundColor: "transparent !important" }
+      }}
+    >
       <CardContent>
         <Typography variant="h6" sx={{ mb: 1 }}>
           {project.name}

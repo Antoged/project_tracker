@@ -15,7 +15,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { lightTheme, darkTheme } from "./theme";
 import { useProjects } from "./hooks/useProjects";
 import { useAuth } from "./auth/AuthContext";
@@ -47,6 +47,11 @@ export default function App() {
       reload(true);
     }
   }, [isAuthenticated, reload]);
+
+  // Оптимизируем обработчик выбора проекта
+  const handleProjectSelect = useCallback((projectId: string) => {
+    setSelectedId(projectId);
+  }, [setSelectedId]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -230,7 +235,7 @@ export default function App() {
                     <div>
                       <ProjectCard
                         project={project}
-                        onSelect={() => setSelectedId(project.id)}
+                        onSelect={() => handleProjectSelect(project.id)}
                         selected={selectedProject?.id === project.id}
                       />
                     </div>
