@@ -207,7 +207,7 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 3 }}>
               <TextField
                 label="Пригласить по никнейму"
-                placeholder="например: anton_123"
+                placeholder="например: alex_123"
                 value={inviteUsername}
                 onChange={(e) => setInviteUsername(e.target.value)}
                 size="small"
