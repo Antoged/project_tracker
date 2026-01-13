@@ -18,6 +18,7 @@ import { Project, Stage } from "../types";
 import { GanttChart } from "./GanttChart";
 import { StageCard } from "./StageCard";
 import { ProjectDeleteDialog } from "./ProjectDeleteDialog";
+import { LeaveProjectDialog } from "./LeaveProjectDialog";
 import { inviteToProject, updateProjectName, deleteProject, leaveProject } from "../api/projects";
 import { useAuth } from "../auth/AuthContext";
 
@@ -39,9 +40,9 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
   const [projectName, setProjectName] = useState(project.name);
   const [saving, setSaving] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [inviteUsername, setInviteUsername] = useState("");
   const [inviting, setInviting] = useState(false);
-  const [leaving, setLeaving] = useState(false);
   
   // Автоматическое обновление проекта каждые 30 секунд (только если вкладка активна)
   useEffect(() => {
@@ -131,18 +132,12 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
   };
 
   const handleLeave = async () => {
-    if (!confirm("Вы уверены, что хотите покинуть этот проект? Вы больше не сможете видеть его этапы и прогресс.")) {
-      return;
-    }
-    setLeaving(true);
     try {
       await leaveProject(project.id);
       await onDelete(); // Удаляем проект из списка
     } catch (err: any) {
       console.error("Failed to leave project:", err);
-      alert(err?.response?.data?.message || "Не удалось покинуть проект");
-    } finally {
-      setLeaving(false);
+      throw err; // Пробрасываем ошибку в диалог
     }
   };
 
@@ -275,11 +270,10 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
             <Button
               variant="outlined"
               color="error"
-              onClick={handleLeave}
-              disabled={leaving}
+              onClick={() => setLeaveDialogOpen(true)}
               sx={{ mb: 3 }}
             >
-              {leaving ? "Покидаем..." : "Покинуть проект"}
+              Покинуть проект
             </Button>
           )}
 
@@ -314,6 +308,12 @@ const ProjectDetailComponent = ({ project, onUpdate, onDelete }: Props) => {
     projectName={project.name}
     onClose={() => setDeleteDialogOpen(false)}
     onConfirm={handleDelete}
+  />
+  <LeaveProjectDialog
+    open={leaveDialogOpen}
+    projectName={project.name}
+    onClose={() => setLeaveDialogOpen(false)}
+    onConfirm={handleLeave}
   />
   </>
   );
