@@ -157,17 +157,18 @@ const StageCardComponent = ({ projectId, stage, canComplete, onUpdate, isAdmin }
             : isDark 
               ? "rgba(255, 255, 255, 0.1)" 
               : "rgba(0, 0, 0, 0.1)",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          // Плавные переходы для всех свойств отдельно
+          transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": {
             boxShadow: isInProgress 
-              ? "0 8px 32px rgba(124, 58, 237, 0.25)" 
-              : "0 8px 32px rgba(0, 0, 0, 0.1)",
+              ? "0 6px 24px rgba(124, 58, 237, 0.18)" 
+              : "0 6px 20px rgba(0, 0, 0, 0.08)",
             transform: "translateY(-2px)",
             borderColor: isInProgress 
               ? "primary.main" 
               : isDark 
-                ? "rgba(255, 255, 255, 0.2)" 
-                : "rgba(0, 0, 0, 0.15)"
+                ? "rgba(255, 255, 255, 0.18)" 
+                : "rgba(0, 0, 0, 0.12)"
           }
         }}
       >

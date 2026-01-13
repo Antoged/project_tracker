@@ -51,11 +51,11 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
           ? "rgba(17, 24, 39, 0.6)"
           : "rgba(255, 255, 255, 0.7)",
         backdropFilter: "blur(20px)",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: selected ? "0 12px 40px rgba(124, 58, 237, 0.3)" : "0 8px 32px rgba(0, 0, 0, 0.15)",
-          borderColor: selected ? "primary.main" : isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.15)"
+          transform: "translateY(-3px)",
+          boxShadow: selected ? "0 8px 24px rgba(124, 58, 237, 0.15)" : "0 6px 20px rgba(0, 0, 0, 0.08)",
+          borderColor: selected ? "primary.main" : isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(0, 0, 0, 0.12)"
         }
       }}
     >
