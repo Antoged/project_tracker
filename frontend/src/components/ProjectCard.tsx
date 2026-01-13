@@ -128,9 +128,11 @@ const ProjectCardComponent = ({ project, onSelect, selected }: Props) => {
                       : stage.status === "in_progress"
                       ? "linear-gradient(90deg, #7c3aed, #2563eb)"
                       : "linear-gradient(90deg, #6b7280, #4b5563)",
-                    transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                     boxShadow: stage.status === "in_progress" 
                       ? "0 0 10px rgba(124, 58, 237, 0.5)"
+                      : stage.status === "done"
+                      ? "0 0 10px rgba(34, 197, 94, 0.5)"
                       : "none",
                   }
                 }}
